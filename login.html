@@ -1,49 +1,60 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
   <title>Login — Juragan Buah</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    body{display:flex;align-items:center;justify-content:center;height:100vh;background:#eef6ee;margin:0;font-family:Segoe UI,Arial}
-    .card{background:#fff;padding:28px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.08);width:360px;text-align:center}
-    .logo{width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block}
-    input{margin-top:8px;padding:10px;border-radius:8px;border:1px solid #ddd;width:100%}
-    button{margin-top:12px}
-    .hint{color:#666;font-size:13px;margin-top:10px}
-  </style>
 </head>
-<body>
-  <div class="card">
-    <img src="assets/logo.png" alt="Juragan Buah" class="logo">
+
+<body class="fade-in">
+
+<div class="login-box">
+    <img src="assets/logo.png" class="login-logo">
     <h2>Juragan Buah</h2>
-    <p style="color:#666;margin-top:8px">Silakan login untuk melanjutkan</p>
 
-    <input id="username" placeholder="Username" autocomplete="off">
-    <input id="password" type="password" placeholder="Password">
-    <button class="btn" onclick="doLogin()">Login</button>
+    <div class="card login-card">
+        <label>Username</label>
+        <input id="user" type="text">
 
-    <div class="hint">Default: admin/admin123 • kasir/kasir123</div>
-  </div>
+        <label>Password</label>
+        <input id="pass" type="password">
 
-  <script src="utils.js"></script>
-  <script src="data.js"></script>
-  <script>
-    function doLogin(){
-      const u = document.getElementById('username').value.trim();
-      const p = document.getElementById('password').value.trim();
-      if(!u||!p){ alert('Isi username & password'); return; }
-      const user = DataStore.authenticate(u,p);
-      if(!user){ alert('Username atau password salah'); return; }
-      saveJSON('sessionUser', user);
-      location.href = 'dashboard.html';
+        <button class="btn" onclick="doLogin()">Masuk</button>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="utils.js"></script>
+
+<script>
+function doLogin(){
+    let u = user.value.trim();
+    let p = pass.value.trim();
+
+    if(u === "admin" && p === "admin"){
+        toast("Login berhasil!");
+        setTimeout(()=>location.href="dashboard.html", 800);
+    } else {
+        toast("Username/password salah");
     }
-    // auto redirect if already logged
-    (function(){
-      const s = loadJSON('sessionUser', null);
-      if(s && s.username) location.href='dashboard.html';
-    })();
-  </script>
+}
+</script>
+
+<style>
+.login-box{
+  max-width: 360px;
+  margin: 90px auto;
+  text-align: center;
+}
+.login-logo{
+  width: 120px;
+  margin-bottom: 10px;
+}
+.login-card{
+  margin-top: 20px;
+}
+</style>
+
 </body>
 </html>

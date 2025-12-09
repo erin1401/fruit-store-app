@@ -1,126 +1,56 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8">
   <title>Dashboard — Juragan Buah</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    .top-logo{width:40px;height:40px;object-fit:contain;margin-right:10px}
-    .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-    .kpi-num{font-size:28px;font-weight:700;color:#27ae60}
-  </style>
 </head>
-<body>
-  <div class="sidebar">
-    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
 
-    <a href="dashboard.html">Dashboard</a>
-    <a href="items.html">Master Item</a>
-    <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Barang Masuk</a>
-    <a href="stock-out.html">Barang Keluar</a>
-    <a href="opname.html">Stok Opname</a>
-    <a href="sales.html">Penjualan</a>
-    <a href="report-sales.html">Laporan Penjualan</a>
-    <a href="report-stock.html">Laporan Persediaan</a>
-    <a href="report-profit.html">Laba Rugi</a>
-    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
-    <a href="users.html">Manajemen User</a>
+<body class="fade-in">
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <h2>Juragan Buah</h2>
+
+  <a href="dashboard.html">Dashboard</a>
+  <a href="items.html">Master Item</a>
+  <a href="buyers.html">Pembeli</a>
+  <a href="stock-in.html">Item Masuk</a>
+  <a href="stock-out.html">Item Keluar</a>
+  <a href="opname.html">Stok Opname</a>
+  <a href="sales.html">Penjualan</a>
+  <a href="report-sales.html">Laporan Penjualan</a>
+  <a href="report-stock.html">Laporan Persediaan</a>
+  <a href="report-profit.html">Laba Rugi</a>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <div class="topbar">
+      <div>
+         <img src="assets/logo.png" class="logo"> 
+         <b>Dashboard</b>
+      </div>
+      <button class="btn" id="toggleDark">Mode</button>
   </div>
 
-  <div class="main">
-    <div class="topbar card" style="display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;">
-        <img src="assets/logo.png" class="top-logo" alt="logo">
-        <div>
-          <h1 style="margin:0">Dashboard</h1>
-          <small id="page-subtitle">Ringkasan toko</small>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center">
-        <button id="toggleDark" class="dark-toggle">🌙</button>
-        <div id="userBox"></div>
-      </div>
-    </div>
+  <h2>Selamat Datang 👋</h2>
 
-    <div style="margin-top:16px">
-      <div class="dash-grid">
-        <div class="card">
-          <h4>Transaksi Hari Ini</h4>
-          <div class="kpi-num" id="dashTransaksi">0</div>
-        </div>
-        <div class="card">
-          <h4>Omzet Hari Ini</h4>
-          <div class="kpi-num" id="dashOmzet">Rp 0</div>
-        </div>
-        <div class="card">
-          <h4>Stok Rendah</h4>
-          <div class="kpi-num" id="dashLow">0</div>
-        </div>
-        <div class="card">
-          <h4>Total Item</h4>
-          <div class="kpi-num" id="dashItem">0</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px">
-        <h3>Grafik Penjualan (7 hari)</h3>
-        <canvas id="salesChart" height="120"></canvas>
-      </div>
-    </div>
+  <div class="card">
+    <h3>Grafik Penjualan (placeholder)</h3>
+    <canvas id="chart1" height="80"></canvas>
   </div>
 
-  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
-  <div id="globalToast" class="toast"></div>
-  <div id="globalFab" class="fab hidden">＋</div>
+</div>
 
-  <script src="utils.js"></script>
-  <script src="data.js"></script>
-  <script>
-    // common init
-    (function(){
-      const s = loadJSON('sessionUser', null);
-      if(!s) location.href='login.html';
-      document.getElementById('userBox').innerText = `👤 ${s.name || s.username} (${s.role})`;
-      // dark mode toggle
-      const body = document.body;
-      if(localStorage.getItem('theme')==='dark') body.classList.add('dark');
-      document.getElementById('toggleDark').onclick = ()=>{
-        body.classList.toggle('dark');
-        localStorage.setItem('theme', body.classList.contains('dark')?'dark':'light');
-      };
-    })();
+<div id="toast" class="toast"></div>
 
-    // dashboard render
-    function renderDashboard(){
-      const today = new Date().toISOString().slice(0,10);
-      const sales = DataStore.getSales();
-      const salesToday = sales.filter(s=>s.date.startsWith(today));
-      document.getElementById('dashTransaksi').innerText = salesToday.length;
-      const omzet = salesToday.reduce((a,b)=>a + Number(b.total),0);
-      document.getElementById('dashOmzet').innerText = formatRupiah(omzet);
-      const items = DataStore.getItems();
-      document.getElementById('dashLow').innerText = items.filter(i=>Number(i.stock)<=5).length;
-      document.getElementById('dashItem').innerText = items.length;
+<script src="utils.js"></script>
+<script src="data.js"></script>
+<script>
+  // Chart placeholder
+</script>
 
-      // chart
-      const summary = DataStore.salesSummaryByDay();
-      const last7 = summary.slice(-7);
-      const labels = last7.map(s=>s.date);
-      const data = last7.map(s=>s.revenue);
-      const ctx = document.getElementById('salesChart').getContext('2d');
-      if(window._salesChart) window._salesChart.destroy();
-      window._salesChart = new Chart(ctx, {
-        type:'line',
-        data:{ labels, datasets:[{ label:'Pendapatan', data, borderColor:'#27ae60', backgroundColor:'rgba(39,174,96,0.12)', tension:0.3 }]},
-        options:{ responsive:true, scales:{ y:{ beginAtZero:true }}}
-      });
-    }
-
-    renderDashboard();
-  </script>
 </body>
 </html>

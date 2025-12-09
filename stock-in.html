@@ -1,14 +1,20 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Barang Masuk — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Barang Masuk — Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="fade-in">
+
   <div class="sidebar">
     <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Barang Masuk</a>
+    <a href="stock-in.html" class="active">Barang Masuk</a>
     <a href="stock-out.html">Barang Keluar</a>
     <a href="opname.html">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
@@ -20,7 +26,10 @@
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Barang Masuk</h1><div id="userBox"></div></div>
+    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center">
+      <h1 style="margin:0">Barang Masuk</h1>
+      <div id="userBox"></div>
+    </div>
 
     <div class="card" style="margin-top:14px">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -28,19 +37,24 @@
         <button class="btn" id="btnStockIn">+ Catat Masuk</button>
       </div>
 
-      <table id="stockInTable" style="margin-top:12px"><thead><tr><th>Tanggal</th><th>Barang</th><th>Qty</th><th>Harga</th><th>Total</th></tr></thead><tbody></tbody></table>
+      <table id="stockInTable" style="margin-top:12px">
+        <thead><tr><th>Tanggal</th><th>Barang</th><th>Qty</th><th>Harga</th><th>Total</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
   <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
-  <div id="globalToast" class="toast"></div>
+  <div id="globalToast" class="toast" aria-live="polite"></div>
   <div id="globalFab" class="fab hidden">＋</div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
-    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
+    const session = loadJSON('sessionUser', null);
+    if(!session) location.href='login.html';
     document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
+
     function renderStockIn(){
       const rows = DataStore.getStockIn().slice().reverse();
       const items = DataStore.getItems();
@@ -49,7 +63,7 @@
       rows.filter(r => (items.find(i=>i.id===r.itemId)?.name||'').toLowerCase().includes(kw)).forEach(r=>{
         const item = items.find(i=>i.id===r.itemId);
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${formatTanggal(r.date)}</td><td>${item?.name||'-'}</td><td>${r.qty}</td><td>${formatRupiah(r.price)}</td><td>${formatRupiah(r.qty*r.price)}</td>`;
+        tr.innerHTML = `<td>${formatTanggal(r.date)}</td><td>${item?.name||'-'}</td><td>${r.qty}</td><td>${formatRupiah(r.price)}</td><td>${formatRupiah(r.qty * r.price)}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -58,19 +72,33 @@
 
     function openStockInModal(){
       const items = DataStore.getItems();
-      openModal(`<h3>Catat Barang Masuk</h3><label>Pilih Item</label><select id="si_item">${ items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('') }</select><label>Qty</label><input id="si_qty" type="number" value="1"><label>Harga Beli/Unit</label><input id="si_price" type="number" value="0"><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveStockInModal()">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
+      openModal(`
+        <h3>Catat Barang Masuk</h3>
+        <label>Pilih Item</label>
+        <select id="si_item">${ items.map(i=>`<option value="${i.id}">${i.name} (Stok: ${i.stock})</option>` ).join('') }</select>
+        <label>Qty</label><input id="si_qty" type="number" value="1">
+        <label>Harga Beli/Unit</label><input id="si_price" type="number" value="0">
+        <div style="text-align:right;margin-top:12px">
+          <button class="btn" onclick="saveStockInModal()">Simpan</button>
+          <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+        </div>
+      `);
     }
+
     function saveStockInModal(){
       const itemId = document.getElementById('si_item').value;
       const qty = Number(document.getElementById('si_qty').value)||0;
       const price = Number(document.getElementById('si_price').value)||0;
-      if(qty<=0||price<=0){ toast('Jumlah & harga harus > 0','error'); return; }
+      if(qty<=0 || price<=0){ toast('Jumlah & harga harus > 0','error'); return; }
       DataStore.recordStockIn({ itemId, qty, price });
-      toast('Barang masuk dicatat'); closeModal(); renderStockIn();
+      toast('Barang masuk dicatat');
+      closeModal();
+      renderStockIn();
     }
 
     document.getElementById('btnStockIn').addEventListener('click', openStockInModal);
     showFab(openStockInModal, 'Barang Masuk');
+
     renderStockIn();
   </script>
 </body>

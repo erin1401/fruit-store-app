@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Manajemen User — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Manajemen User — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<body class="fade-in">
+
   <div class="sidebar">
     <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
@@ -16,13 +17,16 @@
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
     <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
-    <a href="users.html">Manajemen User</a>
+    <a href="users.html" class="active">Manajemen User</a>
   </div>
 
   <div class="main">
     <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Manajemen User</h1><div id="userBox"></div></div>
 
-    <div class="card" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center"><div></div><div><button class="btn" id="btnAddUser">+ Tambah User</button></div></div>
+    <div class="card" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+      <div></div>
+      <div><button class="btn" id="btnAddUser">+ Tambah User</button></div>
+    </div>
 
     <div class="card" style="margin-top:12px">
       <table id="usersTable"><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Aksi</th></tr></thead><tbody></tbody></table>
@@ -36,7 +40,7 @@
   <script src="data.js"></script>
   <script>
     const sessionUser = loadJSON('sessionUser', null); if(!sessionUser) location.href='login.html';
-    if(sessionUser.role!=='admin'){ alert('Hanya admin boleh mengakses'); location.href='dashboard.html'; }
+    if(sessionUser.role !== 'admin'){ alert('Hanya admin'); location.href='dashboard.html'; }
     document.getElementById('userBox').innerText = `👤 ${sessionUser.name||sessionUser.username} (${sessionUser.role})`;
 
     function renderUsersPage(){
@@ -55,7 +59,6 @@
     function saveNewUser(){ try{ DataStore.addUser({ username: document.getElementById('u_username').value.trim(), password: document.getElementById('u_pass').value || '123456', name: document.getElementById('u_name').value.trim(), role: document.getElementById('u_role').value }); toast('User ditambahkan'); closeModal(); renderUsersPage(); }catch(e){ toast(e.message,'error'); } }
 
     function deleteUserConfirm(id){ if(!confirm('Hapus user?')) return; DataStore.deleteUser(id); toast('User dihapus'); renderUsersPage(); }
-
     function editUser(id){ const u = DataStore.getUsers().find(x=>x.id===id); openModal(`<h3>Edit User</h3><input type="hidden" id="eu_id" value="${u.id}"><label>Nama</label><input id="eu_name" value="${u.name||''}"><label>Password (kosong = tidak diubah)</label><input id="eu_pass" type="password"><label>Role</label><select id="eu_role"><option ${u.role==='admin'?'selected':''} value="admin">admin</option><option ${u.role==='kasir'?'selected':''} value="kasir">kasir</option></select><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveEditUser()">Simpan</button></div>`); }
     function saveEditUser(){ const id=document.getElementById('eu_id').value; const patch={ name: document.getElementById('eu_name').value.trim(), role: document.getElementById('eu_role').value }; const pw=document.getElementById('eu_pass').value; if(pw) patch.password=pw; DataStore.updateUser(id, patch); toast('User diperbarui'); closeModal(); renderUsersPage(); }
 

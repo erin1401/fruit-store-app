@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Stok Opname — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stok Opname — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<body class="fade-in">
+
   <div class="sidebar">
     <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
@@ -10,7 +11,7 @@
     <a href="buyers.html">Pembeli</a>
     <a href="stock-in.html">Barang Masuk</a>
     <a href="stock-out.html">Barang Keluar</a>
-    <a href="opname.html">Stok Opname</a>
+    <a href="opname.html" class="active">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
@@ -20,7 +21,10 @@
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Stok Opname</h1><div id="userBox"></div></div>
+    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center">
+      <h1 style="margin:0">Stok Opname</h1>
+      <div id="userBox"></div>
+    </div>
 
     <div class="card" style="margin-top:14px">
       <p>Sesuaikan stok fisik untuk tiap item.</p>
@@ -61,8 +65,10 @@
 
     function applyOpname(id){
       const fisik = Number(document.getElementById(`fisik_${id}`).value)||0;
-      DataStore.recordStockOpname([{ itemId: id, physical: fisik, reason: 'Opname manual' }]);
-      toast('Stok disesuaikan'); renderOpname(); renderOpnameHistory();
+      DataStore.recordStockOpname([{ itemId: id, physical: fisik, reason:'Opname manual' }]);
+      toast('Stok disesuaikan');
+      renderOpname();
+      renderOpnameHistory();
     }
 
     function renderOpnameHistory(){
@@ -78,7 +84,8 @@
     }
 
     document.getElementById('searchOpname').addEventListener('input', renderOpname);
-    renderOpname(); renderOpnameHistory();
+    renderOpname();
+    renderOpnameHistory();
   </script>
 </body>
 </html>

@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Barang Keluar — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Barang Keluar — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<body class="fade-in">
+
   <div class="sidebar">
     <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
@@ -9,7 +10,7 @@
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
     <a href="stock-in.html">Barang Masuk</a>
-    <a href="stock-out.html">Barang Keluar</a>
+    <a href="stock-out.html" class="active">Barang Keluar</a>
     <a href="opname.html">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
@@ -20,7 +21,10 @@
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Barang Keluar</h1><div id="userBox"></div></div>
+    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center">
+      <h1 style="margin:0">Barang Keluar</h1>
+      <div id="userBox"></div>
+    </div>
 
     <div class="card" style="margin-top:14px">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -28,7 +32,10 @@
         <button class="btn" id="btnStockOut">+ Catat Keluar</button>
       </div>
 
-      <table id="stockOutTable" style="margin-top:12px"><thead><tr><th>Tanggal</th><th>Barang</th><th>Qty</th><th>Alasan</th></tr></thead><tbody></tbody></table>
+      <table id="stockOutTable" style="margin-top:12px">
+        <thead><tr><th>Tanggal</th><th>Barang</th><th>Qty</th><th>Alasan</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
@@ -39,7 +46,8 @@
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
-    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
+    const session = loadJSON('sessionUser', null);
+    if(!session) location.href='login.html';
     document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
 
     function renderStockOut(){
@@ -59,8 +67,19 @@
 
     function openStockOutModal(){
       const items = DataStore.getItems();
-      openModal(`<h3>Catat Barang Keluar</h3><label>Pilih Item</label><select id="so_item">${ items.map(i=>`<option value="${i.id}">${i.name} (Stok: ${i.stock})</option>`).join('') }</select><label>Qty</label><input id="so_qty" type="number" value="1"><label>Alasan</label><input id="so_reason" type="text" placeholder="Rusak / Retur / Pemakaian"><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveStockOutModal()">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
+      openModal(`
+        <h3>Catat Barang Keluar</h3>
+        <label>Pilih Item</label>
+        <select id="so_item">${ items.map(i=>`<option value="${i.id}">${i.name} (Stok: ${i.stock})</option>`).join('') }</select>
+        <label>Qty</label><input id="so_qty" type="number" value="1">
+        <label>Alasan</label><input id="so_reason" type="text" placeholder="Rusak / Retur / Pemakaian">
+        <div style="text-align:right;margin-top:12px">
+          <button class="btn" onclick="saveStockOutModal()">Simpan</button>
+          <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+        </div>
+      `);
     }
+
     function saveStockOutModal(){
       const itemId = document.getElementById('so_item').value;
       const qty = Number(document.getElementById('so_qty').value)||0;
@@ -69,11 +88,14 @@
       const it = DataStore.getItemById(itemId);
       if(qty > it.stock){ toast('Stok tidak mencukupi','error'); return; }
       DataStore.recordStockOut({ itemId, qty, reason });
-      toast('Barang keluar dicatat'); closeModal(); renderStockOut();
+      toast('Barang keluar dicatat');
+      closeModal();
+      renderStockOut();
     }
 
     document.getElementById('btnStockOut').addEventListener('click', openStockOutModal);
     showFab(openStockOutModal, 'Barang Keluar');
+
     renderStockOut();
   </script>
 </body>
