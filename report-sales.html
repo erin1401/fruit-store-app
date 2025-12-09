@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Laporan Penjualan — Fruit Store App</title>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #f5f7f5;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px;
+      background: #28a745;
+      color: white;
+      padding: 20px;
+      position: fixed;
+      height: 100vh;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 10px;
+      margin-top: 10px;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .sidebar a:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .sidebar h2 {
+      text-align: center;
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 240px;
+      padding: 20px;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background: #28a745;
+      color: white;
+    }
+
+    input, select {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    .filter-box {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .detail-row {
+      background: #f1fff1;
+    }
+
+    .total-box {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    button.btn {
+      padding: 7px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+
+    button.btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>🍏 Fruit Store</h2>
+
+    <a href="dashboard.html">Dashboard</a>
+    <a href="items.html">Master Item</a>
+    <a href="buyers.html">Pembeli</a>
+    <a href="stock-in.html">Barang Masuk</a>
+    <a href="stock-out.html">Barang Keluar</a>
+    <a href="opname.html">Stok Opname</a>
+    <a href="sales.html">Penjualan</a>
+    <a href="report-sales.html" style="background:rgba(255,255,255,0.35);">Laporan Penjualan</a>
+    <a href="report-stock.html">Laporan Persediaan</a>
+    <a href="report-profit.html">Laba Rugi</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <h2>Laporan Penjualan</h2>
+
+    <div class="filter-box">
+      <div>
+        <label>Dari Tanggal</label>
+        <input type="date" id="fromDate" onchange="renderTable()">
+      </div>
+
+      <div>
+        <label>Sampai Tanggal</label>
+        <input type="date" id="toDate" onchange="renderTable()">
+      </div>
+
+      <div>
+        <label>Pembeli</label>
+        <select id="buyerFilter" onchange="renderTable()">
+          <option value="">Semua Pembeli</option>
+        </select>
+      </div>
+    </div>
+
+    <br>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice</th>
+          <th>Tanggal</th>
+          <th>Pembeli</th>
+          <th>Total</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody id="salesTable"></tbody>
+    </table>
+
+    <div class="total-box">
+      Total Pendapatan: Rp <span id="grandTotal">0</span>
+    </div>
+
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="data.js"></script>
+
+  <script>
+
+    const session = loadJSON("sessionUser", null);
+    if (!session) window.location.href = "login.html";
+
+    function loadFilters() {
+      const buyers = DataStore.getBuyers();
+      const buyerSelect = document.getElementById("buyerFilter");
+
+      buyers.forEach(b => {
+        buyerSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("salesTable");
+      tbody.innerHTML = "";
+
+      let sales = DataStore.getSales();
+      const buyers = DataStore.getBuyers();
+
+      const from = document.getElementById("fromDate").value;
+      const to = document.getElementById("toDate").value;
+      const buyerFilter = document.getElementById("buyerFilter").value;
+
+      // FILTER TANGGAL
+      if (from) {
+        sales = sales.filter(s => s.date >= from);
+      }
+      if (to) {
+        sales = sales.filter(s => s.date <= to);
+      }
+
+      // FILTER PEMBELI
+      if (buyerFilter) {
+        sales = sales.filter(s => s.buyerId === buyerFilter);
+      }
+
+      // RENDER BARIS
+      let grandTotal = 0;
+
+      sales.forEach((s, index) => {
+        const buyer = buyers.find(b => b.id === s.buyerId);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.invoice}</td>
+          <td>${s.date}</td>
+          <td>${buyer?.name || "-"}</td>
+          <td>Rp ${formatNumber(s.total)}</td>
+          <td><button class="btn" onclick="toggleDetail(${index})">Detail</button></td>
+        `;
+        tbody.appendChild(tr);
+
+        // DETAIL HIDDEN
+        const detail = document.createElement("tr");
+        detail.classList.add("detail-row");
+        detail.style.display = "none";
+        detail.id = "detail_" + index;
+
+        let detailHTML = "<td colspan='5'><b>Detail Item:</b><br><br>";
+
+        s.items.forEach(i => {
+          detailHTML += `
+            ${i.name} — Qty: ${i.qty} × Rp ${formatNumber(i.price)}
+            = Rp ${formatNumber(i.subtotal)}<br>
+          `;
+        });
+
+        detailHTML += "</td>";
+
+        detail.innerHTML = detailHTML;
+        tbody.appendChild(detail);
+
+        grandTotal += s.total;
+      });
+
+      document.getElementById("grandTotal").innerText = formatNumber(grandTotal);
+    }
+
+    function toggleDetail(id) {
+      const row = document.getElementById("detail_" + id);
+      row.style.display = row.style.display === "none" ? "table-row" : "none";
+    }
+
+    loadFilters();
+    renderTable();
+
+  </script>
+
+</body>
+</html>
