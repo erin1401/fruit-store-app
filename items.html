@@ -1,133 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Master Item — Fruit Store App</title>
-
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Master Item — Juragan Buah</title>
   <link rel="stylesheet" href="styles.css">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7f5;
-      display: flex;
-    }
-
-    .sidebar {
-      width: 240px;
-      background: #28a745;
-      color: white;
-      padding: 20px;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-    }
-
-    .sidebar h2 {
-      text-align: center;
-      margin-top: 0;
-    }
-
-    .sidebar a {
-      display: block;
-      padding: 10px;
-      margin-bottom: 7px;
-      background: rgba(255,255,255,0.15);
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-
-    .sidebar a:hover {
-      background: rgba(255,255,255,0.25);
-    }
-
-    .main {
-      margin-left: 240px;
-      padding: 25px;
-      width: 100%;
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-
-    button.btn {
-      padding: 10px 14px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button.btn:hover {
-      background: #218838;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: white;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-    }
-
-    th {
-      background: #28a745;
-      color: white;
-    }
-
-    input, select {
-      padding: 8px;
-      width: 100%;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-top: 4px;
-    }
-
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 25px;
-      width: 360px;
-      border-radius: 10px;
-    }
-
-    .close {
-      float: right;
-      cursor: pointer;
-      color: red;
-    }
-  </style>
+  <style>.small-input{max-width:320px}</style>
 </head>
-
 <body>
-
-  <!-- SIDEBAR -->
   <div class="sidebar">
-    <h2>🍏 Fruit Store</h2>
-
+    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
-    <a href="items.html" style="background: rgba(255,255,255,0.35);">Master Item</a>
+    <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
     <a href="stock-in.html">Barang Masuk</a>
     <a href="stock-out.html">Barang Keluar</a>
@@ -136,168 +20,94 @@
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
+    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
+    <a href="users.html">Manajemen User</a>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
-    <div class="top-bar">
-      <h2>Master Item Barang</h2>
-      <button class="btn" onclick="openAdd()">+ Tambah Item</button>
+    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center">
+      <h1 style="margin:0">Master Item</h1>
+      <div id="userBox"></div>
     </div>
 
-    <input type="text" id="searchBox" placeholder="Cari nama / kode..." onkeyup="renderTable()">
+    <div class="card" style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <input id="searchItems" class="small-input" placeholder="Cari nama / kode">
+        </div>
+        <div>
+          <button class="btn" id="btnAddItem">+ Tambah Item</button>
+        </div>
+      </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Kode</th>
-          <th>Nama</th>
-          <th>Kategori</th>
-          <th>Harga</th>
-          <th>HPP</th>
-          <th>Stok</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="itemTable"></tbody>
-    </table>
-  </div>
-
-  <!-- MODAL -->
-  <div class="modal" id="modalBox">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">✖</span>
-      <h3 id="modalTitle">Tambah Item</h3>
-
-      <input type="hidden" id="itemId">
-
-      <label>Kode Barang</label>
-      <input type="text" id="code">
-
-      <label>Nama Barang</label>
-      <input type="text" id="name">
-
-      <label>Kategori</label>
-      <input type="text" id="category">
-
-      <label>Harga Jual</label>
-      <input type="number" id="price">
-
-      <label>HPP / Modal</label>
-      <input type="number" id="cost">
-
-      <label>Stok Awal</label>
-      <input type="number" id="stock">
-
-      <br><br>
-      <button class="btn" onclick="saveItem()">Simpan</button>
+      <table id="itemsTable" style="margin-top:12px">
+        <thead><tr><th>Kode</th><th>Nama</th><th>Kategori</th><th>Harga</th><th>HPP</th><th>Stok</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
+
+  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
+  <div id="globalToast" class="toast"></div>
+  <div id="globalFab" class="fab hidden">＋</div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
-
   <script>
-    const session = loadJSON("sessionUser", null);
-    if (!session) window.location = "login.html";
+    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
+    document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
 
-    function renderTable() {
+    function renderItems(){
       const list = DataStore.getItems();
-      const keyword = document.getElementById("searchBox").value.toLowerCase();
-      const tbody = document.getElementById("itemTable");
-      tbody.innerHTML = "";
-
-      list
-        .filter(it =>
-          it.name.toLowerCase().includes(keyword) ||
-          it.code.toLowerCase().includes(keyword)
-        )
-        .forEach(it => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${it.code}</td>
-            <td>${it.name}</td>
-            <td>${it.category || "-"}</td>
-            <td>${formatRupiah(it.price)}</td>
-            <td>${formatRupiah(it.cost)}</td>
-            <td>${it.stock}</td>
-            <td>
-              <button class="btn" onclick="editItem('${it.id}')">Edit</button>
-              <button class="btn" style="background:#dc3545" onclick="deleteItem('${it.id}')">Hapus</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
+      const kw = (document.getElementById('searchItems').value||'').toLowerCase();
+      const tbody = document.querySelector('#itemsTable tbody'); tbody.innerHTML='';
+      list.filter(it => it.name.toLowerCase().includes(kw) || it.code.toLowerCase().includes(kw)).forEach(it=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${it.code}</td><td>${it.name}</td><td>${it.category||''}</td><td>${formatRupiah(it.price)}</td><td>${formatRupiah(it.cost)}</td><td>${it.stock}</td>
+          <td><button class="btn" onclick="onEditItem('${it.id}')">Edit</button> <button class="btn btn-danger" onclick="onDeleteItem('${it.id}')">Hapus</button></td>`;
+        tbody.appendChild(tr);
+      });
     }
 
-    function openAdd() {
-      document.getElementById("modalTitle").innerText = "Tambah Item";
-      document.getElementById("itemId").value = "";
-      document.getElementById("code").value = "";
-      document.getElementById("name").value = "";
-      document.getElementById("category").value = "";
-      document.getElementById("price").value = "";
-      document.getElementById("cost").value = "";
-      document.getElementById("stock").value = "";
-      document.getElementById("modalBox").style.display = "flex";
+    document.getElementById('searchItems').addEventListener('input', renderItems);
+
+    function openAddItemModal(){
+      openModal(`<h3>Tambah Item</h3>
+        <label>Kode</label><input id="m_code">
+        <label>Nama</label><input id="m_name">
+        <label>Kategori</label><input id="m_category">
+        <label>Harga Jual</label><input id="m_price" type="number">
+        <label>HPP</label><input id="m_cost" type="number">
+        <label>Stok Awal</label><input id="m_stock" type="number">
+        <div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveModalItem()">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
+    }
+    function saveModalItem(){
+      const data = { code: document.getElementById('m_code').value.trim(), name: document.getElementById('m_name').value.trim(), category: document.getElementById('m_category').value.trim(), price: Number(document.getElementById('m_price').value)||0, cost: Number(document.getElementById('m_cost').value)||0, stock: Number(document.getElementById('m_stock').value)||0 };
+      try{ DataStore.addItem(data); toast('Item ditambahkan'); closeModal(); renderItems(); }catch(e){ toast(e.message,'error'); }
     }
 
-    function closeModal() {
-      document.getElementById("modalBox").style.display = "none";
-    }
-
-    function editItem(id) {
+    function onEditItem(id){
       const it = DataStore.getItemById(id);
-      if (!it) return;
-
-      document.getElementById("modalTitle").innerText = "Edit Item";
-      document.getElementById("itemId").value = it.id;
-      document.getElementById("code").value = it.code;
-      document.getElementById("name").value = it.name;
-      document.getElementById("category").value = it.category;
-      document.getElementById("price").value = it.price;
-      document.getElementById("cost").value = it.cost;
-      document.getElementById("stock").value = it.stock;
-
-      document.getElementById("modalBox").style.display = "flex";
+      openModal(`<h3>Edit Item</h3><input type="hidden" id="e_id" value="${it.id}">
+        <label>Kode</label><input id="e_code" value="${it.code}">
+        <label>Nama</label><input id="e_name" value="${it.name}">
+        <label>Kategori</label><input id="e_category" value="${it.category||''}">
+        <label>Harga</label><input id="e_price" type="number" value="${it.price}">
+        <label>HPP</label><input id="e_cost" type="number" value="${it.cost}">
+        <label>Stok</label><input id="e_stock" type="number" value="${it.stock}">
+        <div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveEditItem()">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
     }
-
-    function saveItem() {
-      const id = document.getElementById("itemId").value;
-      const data = {
-        code: document.getElementById("code").value.trim(),
-        name: document.getElementById("name").value.trim(),
-        category: document.getElementById("category").value.trim(),
-        price: Number(document.getElementById("price").value),
-        cost: Number(document.getElementById("cost").value),
-        stock: Number(document.getElementById("stock").value)
-      };
-
-      try {
-        if (!id) {
-          DataStore.addItem(data);
-          showToast("Item berhasil ditambahkan!", "success");
-        } else {
-          DataStore.updateItem(id, data);
-          showToast("Item berhasil diperbarui!", "success");
-        }
-      } catch (e) {
-        showToast(e.message, "error");
-      }
-
-      closeModal();
-      renderTable();
+    function saveEditItem(){
+      const id = document.getElementById('e_id').value;
+      const patch = { code: document.getElementById('e_code').value.trim(), name: document.getElementById('e_name').value.trim(), category: document.getElementById('e_category').value.trim(), price: Number(document.getElementById('e_price').value)||0, cost: Number(document.getElementById('e_cost').value)||0, stock: Number(document.getElementById('e_stock').value)||0 };
+      DataStore.updateItem(id, patch); toast('Item diperbarui'); closeModal(); renderItems();
     }
+    function onDeleteItem(id){ if(!confirm('Hapus item?')) return; DataStore.deleteItem(id); toast('Item dihapus'); renderItems(); }
 
-    function deleteItem(id) {
-      if (!confirm("Hapus item ini?")) return;
-      DataStore.deleteItem(id);
-      showToast("Item terhapus!", "success");
-      renderTable();
-    }
+    document.getElementById('btnAddItem').addEventListener('click', openAddItemModal);
+    showFab(openAddItemModal, 'Tambah Item');
 
-    renderTable();
+    renderItems();
   </script>
-
 </body>
 </html>

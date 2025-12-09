@@ -1,70 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fruit Store App</title>
-
-  <!-- Basic CSS Loading Screen -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Juragan Buah — Loading</title>
+  <link rel="stylesheet" href="styles.css">
   <style>
-    body {
-      margin: 0;
-      background: #f4f4f4;
-      font-family: Arial, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .loading-box {
-      text-align: center;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 6px solid #ccc;
-      border-top-color: #28a745;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-      margin: auto;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    h2 {
-      margin-top: 15px;
-      color: #28a745;
-      font-weight: 600;
-    }
+    body{display:flex;align-items:center;justify-content:center;height:100vh;background:#eef6ee;margin:0;font-family:Segoe UI,Arial;}
+    .box{background:#fff;padding:28px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.08);text-align:center}
+    .logo{width:96px;height:96px;object-fit:contain}
+    .spinner{width:50px;height:50px;border:6px solid #e6e6e6;border-top-color:#27ae60;border-radius:50%;animation:spin .8s linear infinite;margin:14px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
-
 <body>
-  <div class="loading-box">
+  <div class="box">
+    <img src="assets/logo.png" alt="Juragan Buah" class="logo">
+    <h2>Juragan Buah</h2>
     <div class="spinner"></div>
-    <h2>Memuat aplikasi...</h2>
+    <div>Memuat aplikasi...</div>
   </div>
 
   <script src="utils.js"></script>
-  <script src="data.js"></script>
-
   <script>
-    // Tunggu sedikit agar animasi terlihat
-    setTimeout(() => {
-      const session = loadJSON("sessionUser", null);
-
-      if (session && session.username) {
-        window.location.href = "dashboard.html";
-      } else {
-        window.location.href = "login.html";
-      }
-    }, 700);
+    setTimeout(()=>{
+      const s = loadJSON('sessionUser', null);
+      if(s && s.username) location.href = 'dashboard.html';
+      else location.href = 'login.html';
+    },600);
   </script>
 </body>
 </html>

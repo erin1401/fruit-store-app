@@ -76,15 +76,15 @@ body.dark .navbar button {
    Sidebar
    ====================================== */
 .sidebar {
-  width: 240px;
-  background: #28a745;
-  height: 100vh;
+  width: 250px;
+  background: #ffffff;
   position: fixed;
+  top: 58px;
   left: 0;
-  top: 0;
-  color: white;
-  padding: 20px;
-  box-sizing: border-box;
+  bottom: 0;
+  padding: 12px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
 }
 
 body.dark .sidebar {
@@ -134,12 +134,11 @@ body.dark .sidebar a:hover {
 /* ======================================
    Content Area
    ====================================== */
-.main {
-  margin-left: 240px;     /* FIX: Agar tidak tertutup sidebar */
+.content {
+  margin-left: 260px;
   padding: 20px;
-  width: calc(100% - 240px);
-  box-sizing: border-box;
 }
+
 /* ======================================
    Cards
    ====================================== */
@@ -269,34 +268,3 @@ body.dark .table td {
     margin-left: 0;
   }
 }
-
-/* Global layout fix */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  display: flex;
-  background: #f5f7f5;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 240px;
-  background: #28a745;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  color: white;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-/* Main content area */
-.main {
-  margin-left: 240px;     /* FIX: Agar tidak tertutup sidebar */
-  padding: 20px;
-  width: calc(100% - 240px);
-  box-sizing: border-box;
-}
-
-

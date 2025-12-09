@@ -1,213 +1,126 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Dashboard — Juragan Buah</title>
-
-  <link rel="stylesheet" href="styles.css" />
-
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7f5;
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 240px;
-      background: #28a745;
-      color: white;
-      padding: 20px;
-      box-sizing: border-box;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-    }
-
-    .sidebar h2 {
-      margin-top: 0;
-      text-align: center;
-      font-weight: 700;
-    }
-
-    .menu {
-      margin-top: 25px;
-    }
-
-    .menu a {
-      display: block;
-      padding: 12px;
-      margin-bottom: 8px;
-      color: white;
-      text-decoration: none;
-      background: rgba(255,255,255,0.1);
-      border-radius: 8px;
-      font-size: 15px;
-    }
-
-    .menu a:hover {
-      background: rgba(255,255,255,0.25);
-    }
-
-    /* Main content */
-    .main {
-      margin-left: 240px;
-      padding: 25px;
-      flex-grow: 1;
-    }
-
-    /* Header */
-    .top-bar {
-      background: #fff;
-      padding: 15px 20px;
-      margin: -25px -25px 20px -25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .top-bar .user {
-      font-weight: 600;
-      color: #333;
-    }
-
-    .logout-btn {
-      background: #dc3545;
-      color: white;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .logout-btn:hover {
-      background: #c82333;
-    }
-
-    /* Cards */
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    .card h3 {
-      margin: 10px 0 5px;
-      font-size: 26px;
-      color: #28a745;
-    }
-
-    .card p {
-      color: #555;
-      margin: 0;
-    }
+    .top-logo{width:40px;height:40px;object-fit:contain;margin-right:10px}
+    .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+    .kpi-num{font-size:28px;font-weight:700;color:#27ae60}
   </style>
 </head>
-
 <body>
-
-  <!-- SIDEBAR -->
   <div class="sidebar">
-    <h2>🍏 Juragan Buah</h2>
+    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
 
-    <div class="menu">
-      <a href="items.html">Master Item</a>
-      <a href="buyers.html">Pembeli</a>
-      <a href="stock-in.html">Item Masuk</a>
-      <a href="stock-out.html">Item Keluar</a>
-      <a href="opname.html">Stok Opname</a>
-      <a href="sales.html">Penjualan</a>
-      <a href="report-sales.html">Laporan Penjualan</a>
-      <a href="report-stock.html">Laporan Persediaan</a>
-      <a href="report-profit.html">Laba Rugi</a>
-    </div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="items.html">Master Item</a>
+    <a href="buyers.html">Pembeli</a>
+    <a href="stock-in.html">Barang Masuk</a>
+    <a href="stock-out.html">Barang Keluar</a>
+    <a href="opname.html">Stok Opname</a>
+    <a href="sales.html">Penjualan</a>
+    <a href="report-sales.html">Laporan Penjualan</a>
+    <a href="report-stock.html">Laporan Persediaan</a>
+    <a href="report-profit.html">Laba Rugi</a>
+    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
+    <a href="users.html">Manajemen User</a>
   </div>
 
-  <!-- MAIN CONTENT -->
   <div class="main">
-    <div class="top-bar">
-      <div class="user" id="userInfo"></div>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="topbar card" style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;">
+        <img src="assets/logo.png" class="top-logo" alt="logo">
+        <div>
+          <h1 style="margin:0">Dashboard</h1>
+          <small id="page-subtitle">Ringkasan toko</small>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button id="toggleDark" class="dark-toggle">🌙</button>
+        <div id="userBox"></div>
+      </div>
     </div>
 
-    <h2>Dashboard</h2>
-    <p>Ringkasan aktivitas toko buah hari ini:</p>
-
-    <div class="cards">
-      <div class="card">
-        <h3 id="todaySales">0</h3>
-        <p>Transaksi Hari Ini</p>
+    <div style="margin-top:16px">
+      <div class="dash-grid">
+        <div class="card">
+          <h4>Transaksi Hari Ini</h4>
+          <div class="kpi-num" id="dashTransaksi">0</div>
+        </div>
+        <div class="card">
+          <h4>Omzet Hari Ini</h4>
+          <div class="kpi-num" id="dashOmzet">Rp 0</div>
+        </div>
+        <div class="card">
+          <h4>Stok Rendah</h4>
+          <div class="kpi-num" id="dashLow">0</div>
+        </div>
+        <div class="card">
+          <h4>Total Item</h4>
+          <div class="kpi-num" id="dashItem">0</div>
+        </div>
       </div>
 
-      <div class="card">
-        <h3 id="todayRevenue">Rp 0</h3>
-        <p>Total Pendapatan Hari Ini</p>
-      </div>
-
-      <div class="card">
-        <h3 id="lowStock">0</h3>
-        <p>Item Stok Rendah (≤ 5)</p>
-      </div>
-
-      <div class="card">
-        <h3 id="totalItems">0</h3>
-        <p>Total Item Barang</p>
+      <div class="card" style="margin-top:14px">
+        <h3>Grafik Penjualan (7 hari)</h3>
+        <canvas id="salesChart" height="120"></canvas>
       </div>
     </div>
   </div>
+
+  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
+  <div id="globalToast" class="toast"></div>
+  <div id="globalFab" class="fab hidden">＋</div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
-
   <script>
-    const session = loadJSON("sessionUser", null);
-    if (!session) {
-      window.location.href = "login.html";
-    }
+    // common init
+    (function(){
+      const s = loadJSON('sessionUser', null);
+      if(!s) location.href='login.html';
+      document.getElementById('userBox').innerText = `👤 ${s.name || s.username} (${s.role})`;
+      // dark mode toggle
+      const body = document.body;
+      if(localStorage.getItem('theme')==='dark') body.classList.add('dark');
+      document.getElementById('toggleDark').onclick = ()=>{
+        body.classList.toggle('dark');
+        localStorage.setItem('theme', body.classList.contains('dark')?'dark':'light');
+      };
+    })();
 
-    document.getElementById("userInfo").innerText =
-      `👤 ${session.name} (${session.role})`;
-
-    function logout() {
-      localStorage.removeItem("sessionUser");
-      showToast("Logout berhasil!", "success");
-      setTimeout(() => window.location.href = "login.html", 600);
-    }
-
-    function loadDashboard() {
-      const today = new Date().toISOString().slice(0, 10);
-
+    // dashboard render
+    function renderDashboard(){
+      const today = new Date().toISOString().slice(0,10);
       const sales = DataStore.getSales();
-      const salesToday = sales.filter(s => s.date.startsWith(today));
-
-      const revenueToday = salesToday.reduce((sum, s) => sum + Number(s.total), 0);
-
+      const salesToday = sales.filter(s=>s.date.startsWith(today));
+      document.getElementById('dashTransaksi').innerText = salesToday.length;
+      const omzet = salesToday.reduce((a,b)=>a + Number(b.total),0);
+      document.getElementById('dashOmzet').innerText = formatRupiah(omzet);
       const items = DataStore.getItems();
-      const lowStock = items.filter(i => Number(i.stock) <= 5);
+      document.getElementById('dashLow').innerText = items.filter(i=>Number(i.stock)<=5).length;
+      document.getElementById('dashItem').innerText = items.length;
 
-      document.getElementById("todaySales").innerText = salesToday.length;
-      document.getElementById("todayRevenue").innerText = formatRupiah(revenueToday);
-      document.getElementById("lowStock").innerText = lowStock.length;
-      document.getElementById("totalItems").innerText = items.length;
+      // chart
+      const summary = DataStore.salesSummaryByDay();
+      const last7 = summary.slice(-7);
+      const labels = last7.map(s=>s.date);
+      const data = last7.map(s=>s.revenue);
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      if(window._salesChart) window._salesChart.destroy();
+      window._salesChart = new Chart(ctx, {
+        type:'line',
+        data:{ labels, datasets:[{ label:'Pendapatan', data, borderColor:'#27ae60', backgroundColor:'rgba(39,174,96,0.12)', tension:0.3 }]},
+        options:{ responsive:true, scales:{ y:{ beginAtZero:true }}}
+      });
     }
 
-    loadDashboard();
+    renderDashboard();
   </script>
-
 </body>
 </html>
-

@@ -1,19 +1,10 @@
 <!doctype html>
 <html lang="id">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Manajemen User — Juragan Buah/title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    /* small overrides */
-    .actions { display:flex; gap:8px; }
-    .small-muted { color:#666; font-size:13px; }
-  </style>
-</head>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Manajemen User — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
 <body>
   <div class="sidebar">
-    <h2>🍏 Juragan Buah</h2>
+    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
@@ -24,139 +15,51 @@
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
-    <a href="users.html" style="background:rgba(255,255,255,0.35)">Manajemen User</a>
+    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
+    <a href="users.html">Manajemen User</a>
   </div>
 
   <div class="main">
-    <h2>Manajemen User</h2>
-    <p class="small-muted">Hanya admin yang dapat menambah/hapus/ganti password user.</p>
+    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Manajemen User</h1><div id="userBox"></div></div>
 
-    <div style="display:flex;gap:12px;align-items:center">
-      <button class="btn" onclick="openAddUser()">+ Tambah User</button>
-      <button class="btn btn-secondary" onclick="seedSample()">Reset ke Sample Data</button>
-      <button class="btn btn-warning" onclick="exportUsers()">Export Users (.csv)</button>
-    </div>
+    <div class="card" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center"><div></div><div><button class="btn" id="btnAddUser">+ Tambah User</button></div></div>
 
-    <table class="table" style="margin-top:12px">
-      <thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Aksi</th></tr></thead>
-      <tbody id="usersTable"></tbody>
-    </table>
-  </div>
-
-  <!-- modal -->
-  <div class="modal" id="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">✖</span>
-      <h3 id="modalTitle">Tambah User</h3>
-      <input id="uid" type="hidden">
-      <label>Username</label><input id="u_username" />
-      <label>Nama Lengkap</label><input id="u_name" />
-      <label>Password</label><input id="u_password" type="password" />
-      <label>Role</label>
-      <select id="u_role"><option value="admin">admin</option><option value="kasir">kasir</option></select>
-      <div style="text-align:right;margin-top:12px">
-        <button class="btn" onclick="saveUser()">Simpan</button>
-      </div>
+    <div class="card" style="margin-top:12px">
+      <table id="usersTable"><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Aksi</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
+
+  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
+  <div id="globalToast" class="toast"></div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
-
   <script>
-    const session = loadJSON('sessionUser', null);
-    if(!session) location.href='login.html';
-    if(session.role !== 'admin') {
-      alert('Akses ditolak — hanya admin.');
-      location.href='dashboard.html';
+    const sessionUser = loadJSON('sessionUser', null); if(!sessionUser) location.href='login.html';
+    if(sessionUser.role!=='admin'){ alert('Hanya admin boleh mengakses'); location.href='dashboard.html'; }
+    document.getElementById('userBox').innerText = `👤 ${sessionUser.name||sessionUser.username} (${sessionUser.role})`;
+
+    function renderUsersPage(){
+      const t = document.querySelector('#usersTable tbody'); t.innerHTML='';
+      DataStore.getUsers().forEach(u=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${u.username}</td><td>${u.name||'-'}</td><td>${u.role}</td><td><button class="btn" onclick="editUser('${u.id}')">Edit</button> <button class="btn btn-danger" onclick="deleteUserConfirm('${u.id}')">Hapus</button></td>`;
+        t.appendChild(tr);
+      });
     }
 
-    function renderUsers(){
-      const tbody = document.getElementById('usersTable');
-      const users = DataStore.getUsers();
-      tbody.innerHTML = users.map(u => `
-        <tr>
-          <td>${u.username}</td>
-          <td>${u.name || '-'}</td>
-          <td>${u.role}</td>
-          <td>
-            <div class="actions">
-              <button class="btn" onclick="editUser('${u.id}')">Edit</button>
-              <button class="btn btn-danger" onclick="deleteUserConfirm('${u.id}')">Hapus</button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
+    document.getElementById('btnAddUser').addEventListener('click', ()=> {
+      openModal(`<h3>Tambah User</h3><label>Username</label><input id="u_username"><label>Nama</label><input id="u_name"><label>Password</label><input id="u_pass" type="password"><label>Role</label><select id="u_role"><option value="kasir">kasir</option><option value="admin">admin</option></select><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveNewUser()">Simpan</button></div>`);
+    });
 
-    function openAddUser(){
-      document.getElementById('modalTitle').innerText = 'Tambah User';
-      ['uid','u_username','u_name','u_password'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('u_role').value = 'kasir';
-      document.getElementById('modal').style.display = 'flex';
-    }
+    function saveNewUser(){ try{ DataStore.addUser({ username: document.getElementById('u_username').value.trim(), password: document.getElementById('u_pass').value || '123456', name: document.getElementById('u_name').value.trim(), role: document.getElementById('u_role').value }); toast('User ditambahkan'); closeModal(); renderUsersPage(); }catch(e){ toast(e.message,'error'); } }
 
-    function editUser(id){
-      const u = DataStore.getUsers().find(x=>x.id===id);
-      if(!u) return;
-      document.getElementById('modalTitle').innerText = 'Edit User';
-      document.getElementById('uid').value = u.id;
-      document.getElementById('u_username').value = u.username;
-      document.getElementById('u_name').value = u.name;
-      document.getElementById('u_password').value = '';
-      document.getElementById('u_role').value = u.role;
-      document.getElementById('modal').style.display = 'flex';
-    }
+    function deleteUserConfirm(id){ if(!confirm('Hapus user?')) return; DataStore.deleteUser(id); toast('User dihapus'); renderUsersPage(); }
 
-    function closeModal(){ document.getElementById('modal').style.display = 'none'; }
+    function editUser(id){ const u = DataStore.getUsers().find(x=>x.id===id); openModal(`<h3>Edit User</h3><input type="hidden" id="eu_id" value="${u.id}"><label>Nama</label><input id="eu_name" value="${u.name||''}"><label>Password (kosong = tidak diubah)</label><input id="eu_pass" type="password"><label>Role</label><select id="eu_role"><option ${u.role==='admin'?'selected':''} value="admin">admin</option><option ${u.role==='kasir'?'selected':''} value="kasir">kasir</option></select><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveEditUser()">Simpan</button></div>`); }
+    function saveEditUser(){ const id=document.getElementById('eu_id').value; const patch={ name: document.getElementById('eu_name').value.trim(), role: document.getElementById('eu_role').value }; const pw=document.getElementById('eu_pass').value; if(pw) patch.password=pw; DataStore.updateUser(id, patch); toast('User diperbarui'); closeModal(); renderUsersPage(); }
 
-    function saveUser(){
-      const id = document.getElementById('uid').value;
-      const username = document.getElementById('u_username').value.trim();
-      const name = document.getElementById('u_name').value.trim();
-      const password = document.getElementById('u_password').value;
-      const role = document.getElementById('u_role').value;
-
-      try{
-        if(!id){
-          DataStore.addUser({username, password: password || '123456', name, role});
-          showToast('User ditambahkan','success');
-        } else {
-          const patch = { username, name, role };
-          if(password) patch.password = password;
-          DataStore.updateUser(id, patch);
-          showToast('User diperbarui','success');
-        }
-        closeModal();
-        renderUsers();
-      }catch(e){
-        showToast(e.message,'error');
-      }
-    }
-
-    function deleteUserConfirm(id){
-      if(!confirm('Hapus user?')) return;
-      DataStore.deleteUser(id);
-      showToast('User terhapus','success');
-      renderUsers();
-    }
-
-    function seedSample(){
-      if(!confirm('Reset semua data ke sample?')) return;
-      DataStore.seedSampleData();
-      showToast('Data sample dipulihkan','success');
-      renderUsers();
-    }
-
-    function exportUsers(){
-      const rows = [['username','name','role']];
-      DataStore.getUsers().forEach(u => rows.push([u.username, u.name || '', u.role]));
-      exportCSV('users.csv', rows);
-      showToast('Export users selesai','success');
-    }
-
-    renderUsers();
+    renderUsersPage();
   </script>
 </body>
 </html>
-

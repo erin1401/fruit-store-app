@@ -1,247 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stok Opname — Fruit Store App</title>
-
-  <link rel="stylesheet" href="styles.css">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7f5;
-      display: flex;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 240px;
-      background: #28a745;
-      color: white;
-      padding: 20px;
-      position: fixed;
-      height: 100vh;
-    }
-
-    .sidebar h2 {
-      margin: 0;
-      text-align: center;
-    }
-
-    .sidebar a {
-      display: block;
-      padding: 10px;
-      margin-top: 10px;
-      text-decoration: none;
-      color: white;
-      border-radius: 6px;
-      background: rgba(255,255,255,0.15);
-    }
-    .sidebar a:hover {
-      background: rgba(255,255,255,0.25);
-    }
-
-    .main {
-      margin-left: 240px;
-      padding: 25px;
-      width: 100%;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: white;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-    }
-
-    th {
-      background: #28a745;
-      color: white;
-    }
-
-    input {
-      padding: 6px;
-      width: 100%;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-top: 4px;
-    }
-
-    button.btn {
-      padding: 10px 14px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button.btn:hover { background: #218838; }
-
-    .label {
-      margin-top: 25px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-  </style>
-</head>
-
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Stok Opname — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
 <body>
-
-  <!-- SIDEBAR -->
   <div class="sidebar">
-    <h2>🍏 Fruit Store</h2>
-
+    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
     <a href="stock-in.html">Barang Masuk</a>
     <a href="stock-out.html">Barang Keluar</a>
-    <a href="opname.html" style="background: rgba(255,255,255,0.35);">Stok Opname</a>
+    <a href="opname.html">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
+    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
+    <a href="users.html">Manajemen User</a>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
+    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Stok Opname</h1><div id="userBox"></div></div>
 
-    <h2>Stok Opname</h2>
-    <p>Input stok fisik untuk mencocokkan stok sistem.</p>
+    <div class="card" style="margin-top:14px">
+      <p>Sesuaikan stok fisik untuk tiap item.</p>
+      <input id="searchOpname" placeholder="Cari nama barang..." style="max-width:360px">
+      <table id="opnameTable" style="margin-top:12px"><thead><tr><th>Nama</th><th>Stok Sistem</th><th>Stok Fisik</th><th>Selisih</th><th>Aksi</th></tr></thead><tbody></tbody></table>
+    </div>
 
-    <input type="text" id="searchBox" placeholder="Cari nama barang..." onkeyup="renderTable()">
-
-    <!-- TABEL ITEM UNTUK OPNAME -->
-    <table>
-      <thead>
-        <tr>
-          <th>Nama Barang</th>
-          <th>Stok Sistem</th>
-          <th>Stok Fisik</th>
-          <th>Selisih</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="opnameTable"></tbody>
-    </table>
-
-    <div class="label">Riwayat Opname</div>
-
-    <!-- TABEL RIWAYAT OPNAME -->
-    <table>
-      <thead>
-        <tr>
-          <th>Tanggal</th>
-          <th>Nama Barang</th>
-          <th>Stok Sistem</th>
-          <th>Stok Fisik</th>
-          <th>Selisih</th>
-        </tr>
-      </thead>
-      <tbody id="historyTable"></tbody>
-    </table>
-
+    <div class="card" style="margin-top:14px">
+      <h4>Riwayat Opname</h4>
+      <table id="opnameHistory"><thead><tr><th>Tanggal</th><th>Barang</th><th>System</th><th>Fisik</th><th>Selisih</th></tr></thead><tbody></tbody></table>
+    </div>
   </div>
+
+  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
+  <div id="globalToast" class="toast"></div>
+  <div id="globalFab" class="fab hidden">＋</div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
-
   <script>
+    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
+    document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
 
-    const session = loadJSON("sessionUser", null);
-    if (!session) window.location.href = "login.html";
-
-    function renderTable() {
-      const list = DataStore.getItems();
-      const keyword = document.getElementById("searchBox").value.toLowerCase();
-
-      const tbody = document.getElementById("opnameTable");
-      tbody.innerHTML = "";
-
-      list
-        .filter(it => it.name.toLowerCase().includes(keyword))
-        .forEach(it => {
-          const tr = document.createElement("tr");
-
-          tr.innerHTML = `
-            <td>${it.name}</td>
-            <td>${it.stock}</td>
-            <td><input type="number" id="fisik_${it.id}" value="${it.stock}"></td>
-            <td id="selisih_${it.id}">0</td>
-            <td><button class="btn" onclick="updateStock('${it.id}')">Sesuaikan</button></td>
-          `;
-
-          tbody.appendChild(tr);
-
-          document.getElementById(`fisik_${it.id}`).addEventListener("input", () => {
-            const fisik = Number(document.getElementById(`fisik_${it.id}`).value);
-            const selisih = fisik - Number(it.stock);
-            document.getElementById(`selisih_${it.id}`).innerText = selisih;
-          });
-        });
-    }
-
-    function updateStock(id) {
-      const item = DataStore.getItemById(id);
-      const fisik = Number(document.getElementById(`fisik_${id}`).value);
-      const selisih = fisik - Number(item.stock);
-
-      if (fisik < 0) {
-        showToast("Stok fisik tidak boleh negatif!", "error");
-        return;
-      }
-
-      // simpan riwayat opname
-      DataStore.addOpname({
-        itemId: id,
-        oldStock: item.stock,
-        newStock: fisik,
-        selisih
-      });
-
-      // update stok item
-      DataStore.setStock(id, fisik);
-
-      showToast("Stok berhasil disesuaikan!", "success");
-      renderTable();
-      renderHistory();
-    }
-
-
-    function renderHistory() {
-      const hist = DataStore.getOpname();
+    function renderOpname(){
       const items = DataStore.getItems();
-      const tbody = document.getElementById("historyTable");
+      const kw = (document.getElementById('searchOpname').value||'').toLowerCase();
+      const tbody = document.querySelector('#opnameTable tbody'); tbody.innerHTML='';
+      items.filter(i=>i.name.toLowerCase().includes(kw)).forEach(it=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${it.name}</td><td>${it.stock}</td><td><input type="number" id="fisik_${it.id}" value="${it.stock}" style="width:110px;padding:6px"></td><td id="diff_${it.id}">0</td><td><button class="btn" onclick="applyOpname('${it.id}')">Sesuaikan</button></td>`;
+        tbody.appendChild(tr);
+        document.getElementById(`fisik_${it.id}`).addEventListener('input', ()=> {
+          const fisik = Number(document.getElementById(`fisik_${it.id}`).value)||0;
+          document.getElementById(`diff_${it.id}`).innerText = fisik - it.stock;
+        });
+      });
+    }
 
-      tbody.innerHTML = "";
+    function applyOpname(id){
+      const fisik = Number(document.getElementById(`fisik_${id}`).value)||0;
+      DataStore.recordStockOpname([{ itemId: id, physical: fisik, reason: 'Opname manual' }]);
+      toast('Stok disesuaikan'); renderOpname(); renderOpnameHistory();
+    }
 
+    function renderOpnameHistory(){
+      const hist = DataStore.getStockOpname().slice().reverse();
+      const tbody = document.querySelector('#opnameHistory tbody'); tbody.innerHTML='';
+      const items = DataStore.getItems();
       hist.forEach(h => {
-        const item = items.find(i => i.id === h.itemId);
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${h.date}</td>
-          <td>${item?.name || "-"}</td>
-          <td>${h.oldStock}</td>
-          <td>${h.newStock}</td>
-          <td>${h.selisih}</td>
-        `;
+        const it = items.find(x=>x.id===h.itemId);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${formatTanggal(h.date)}</td><td>${it?.name||'-'}</td><td>${h.system}</td><td>${h.physical}</td><td>${h.diff}</td>`;
         tbody.appendChild(tr);
       });
     }
 
-    renderTable();
-    renderHistory();
-
+    document.getElementById('searchOpname').addEventListener('input', renderOpname);
+    renderOpname(); renderOpnameHistory();
   </script>
-
 </body>
 </html>
