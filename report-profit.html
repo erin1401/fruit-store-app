@@ -1,53 +1,41 @@
 <!doctype html>
 <html lang="id">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laba Rugi — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body class="fade-in">
-
+<body>
   <div class="sidebar">
-    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
+    <img src="assets/logo.svg" style="width:100px;display:block;margin:6px auto">
+    <div class="app-name">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Barang Masuk</a>
-    <a href="stock-out.html">Barang Keluar</a>
+    <a href="stock-in.html">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
     <a href="opname.html">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html" class="active">Laba Rugi</a>
-    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
-    <a href="users.html">Manajemen User</a>
+    <a href="users.html">User Management</a>
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Laba Rugi</h1><div id="userBox"></div></div>
+    <div class="topbar"><h1>Laba Rugi</h1><div id="userBox"></div></div>
 
-    <div class="card" style="margin-top:14px;display:flex;gap:12px;align-items:flex-end">
+    <div class="card" style="display:flex;gap:12px;align-items:flex-end">
       <div><label>Dari</label><input type="date" id="p_from"></div>
       <div><label>Sampai</label><input type="date" id="p_to"></div>
       <div style="margin-left:auto"><button class="btn" id="exportProfit">Export CSV</button></div>
     </div>
 
-    <div class="card" style="margin-top:12px">
-      <table id="profitTable"><thead><tr><th>Invoice</th><th>Tanggal</th><th>Pendapatan</th><th>HPP</th><th>Laba</th></tr></thead><tbody></tbody></table>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <div>Total Pendapatan: <b id="sumPendapatan">Rp 0</b></div>
-      <div>Total HPP: <b id="sumHpp">Rp 0</b></div>
-      <div>Laba Kotor: <b id="sumLaba">Rp 0</b></div>
-    </div>
+    <div class="card" style="margin-top:12px"><table id="profitTable"><thead><tr><th>Invoice</th><th>Tanggal</th><th>Pendapatan</th><th>HPP</th><th>Laba</th></tr></thead><tbody></tbody></table></div>
+    <div class="card" style="margin-top:12px"><div>Total Pendapatan: <b id="sumPendapatan">Rp 0</b></div><div>Total HPP: <b id="sumHpp">Rp 0</b></div><div>Laba Kotor: <b id="sumLaba">Rp 0</b></div></div>
   </div>
 
-  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
   <div id="globalToast" class="toast"></div>
-
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
-    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
-    document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
+    checkLogin(); activateSidebarLinks();
 
     function renderProfit(){
       const from = document.getElementById('p_from').value;
@@ -55,17 +43,12 @@
       let sales = DataStore.getSales();
       if(from) sales = sales.filter(s=>s.date>=from);
       if(to) sales = sales.filter(s=>s.date<=to);
-      const tbody = document.querySelector('#profitTable tbody'); tbody.innerHTML='';
-      let total=0,hpp=0;
+      const tbody = document.querySelector('#profitTable tbody'); tbody.innerHTML=''; let total=0,hpp=0;
       const items = DataStore.getItems();
       sales.forEach(s=>{
-        let sHpp = 0;
-        s.items.forEach(it => { sHpp += (items.find(x=>x.id===it.itemId)?.cost||0) * it.qty; });
-        const laba = s.total - sHpp;
-        total += s.total; hpp += sHpp;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${s.id}</td><td>${formatTanggal(s.date)}</td><td>${formatRupiah(s.total)}</td><td>${formatRupiah(sHpp)}</td><td>${formatRupiah(laba)}</td>`;
-        tbody.appendChild(tr);
+        let sHpp = 0; s.items.forEach(it=> sHpp += (items.find(x=>x.id===it.itemId)?.cost||0) * it.qty );
+        const laba = s.total - sHpp; total += s.total; hpp += sHpp;
+        const tr = document.createElement('tr'); tr.innerHTML = `<td>${s.id}</td><td>${formatTanggal(s.date)}</td><td>${formatRupiah(s.total)}</td><td>${formatRupiah(sHpp)}</td><td>${formatRupiah(laba)}</td>`; tbody.appendChild(tr);
       });
       document.getElementById('sumPendapatan').innerText = formatRupiah(total);
       document.getElementById('sumHpp').innerText = formatRupiah(hpp);
@@ -74,11 +57,7 @@
 
     document.getElementById('p_from').addEventListener('change', renderProfit);
     document.getElementById('p_to').addEventListener('change', renderProfit);
-    document.getElementById('exportProfit').addEventListener('click', ()=>{
-      const rows = DataStore.exportProfitRows(document.getElementById('p_from').value, document.getElementById('p_to').value);
-      exportCSV('profit.csv', rows); toast('Export CSV selesai');
-    });
-
+    document.getElementById('exportProfit').addEventListener('click', ()=>{ const rows = DataStore.exportProfitRows(document.getElementById('p_from').value, document.getElementById('p_to').value); exportCSV('profit.csv', rows); toast('Export CSV selesai'); });
     renderProfit();
   </script>
 </body>

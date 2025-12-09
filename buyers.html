@@ -1,30 +1,32 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Pembeli — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pembeli — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
 <body>
   <div class="sidebar">
-    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
+    <img src="assets/logo.svg" alt="Juragan Buah" style="width:100px;display:block;margin:6px auto">
+    <div class="app-name">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
-    <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Barang Masuk</a>
-    <a href="stock-out.html">Barang Keluar</a>
+    <a href="buyers.html" class="active">Pembeli</a>
+    <a href="stock-in.html">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
     <a href="opname.html">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
-    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
-    <a href="users.html">Manajemen User</a>
+    <a href="users.html">User Management</a>
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Pembeli</h1><div id="userBox"></div></div>
+    <div class="topbar">
+      <h1>Pembeli</h1>
+      <div id="userBox"></div>
+    </div>
 
-    <div class="card" style="margin-top:14px">
+    <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <input id="searchBuyers" placeholder="Cari pembeli..." style="max-width:360px">
+        <input id="searchBuyers" placeholder="Cari pembeli..." style="max-width:420px">
         <button class="btn" id="btnAddBuyer">+ Tambah</button>
       </div>
 
@@ -34,38 +36,62 @@
 
   <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
   <div id="globalToast" class="toast"></div>
-  <div id="globalFab" class="fab hidden">＋</div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
-    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
-    document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
+    checkLogin(); activateSidebarLinks();
 
     function renderBuyers(){
       const list = DataStore.getBuyers();
       const kw = (document.getElementById('searchBuyers').value||'').toLowerCase();
       const tbody = document.querySelector('#buyersTable tbody'); tbody.innerHTML='';
-      list.filter(b => b.name.toLowerCase().includes(kw) || (b.phone||'').toLowerCase().includes(kw)).forEach(b=>{
+      list.filter(b => (b.name||'').toLowerCase().includes(kw) || (b.phone||'').toLowerCase().includes(kw)).forEach(b=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${b.name}</td><td>${b.phone||'-'}</td><td>${b.address||'-'}</td><td><button class="btn" onclick="editBuyer('${b.id}')">Edit</button> <button class="btn btn-danger" onclick="deleteBuyer('${b.id}')">Hapus</button></td>`;
         tbody.appendChild(tr);
       });
     }
 
-    document.getElementById('searchBuyers').addEventListener('input', renderBuyers);
+    document.getElementById('btnAddBuyer').addEventListener('click', ()=>{
+      openModal(`<h3>Tambah Pembeli</h3>
+        <label>Nama</label><input id="b_name">
+        <label>No HP</label><input id="b_phone">
+        <label>Alamat</label><input id="b_address">
+        <div style="text-align:right;margin-top:12px"><button class="btn" id="saveBuyer">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
+      setTimeout(()=> {
+        document.getElementById('saveBuyer').onclick = ()=>{
+          const name = document.getElementById('b_name').value.trim();
+          const phone = document.getElementById('b_phone').value.trim();
+          const address = document.getElementById('b_address').value.trim();
+          if(!name){ toast('Nama wajib','warn'); return; }
+          DataStore.addBuyer({ name, phone, address });
+          toast('Pembeli ditambahkan');
+          closeModal(); renderBuyers();
+        };
+      },60);
+    });
 
-    function openAddBuyerModal(){
-      openModal(`<h3>Tambah Pembeli</h3><label>Nama</label><input id="b_name"><label>No HP</label><input id="b_phone"><label>Alamat</label><input id="b_address"><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveBuyerModal()">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
+    function editBuyer(id){
+      const b = DataStore.getBuyers().find(x=>x.id===id);
+      openModal(`<h3>Edit Pembeli</h3><input type="hidden" id="eb_id" value="${b.id}"><label>Nama</label><input id="eb_name" value="${b.name||''}"><label>No HP</label><input id="eb_phone" value="${b.phone||''}"><label>Alamat</label><input id="eb_address" value="${b.address||''}"><div style="text-align:right;margin-top:12px"><button class="btn" id="saveEditBuyer">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
+      setTimeout(()=> {
+        document.getElementById('saveEditBuyer').onclick = ()=>{
+          DataStore.updateBuyer(document.getElementById('eb_id').value, { name: document.getElementById('eb_name').value.trim(), phone: document.getElementById('eb_phone').value.trim(), address: document.getElementById('eb_address').value.trim() });
+          toast('Pembeli diperbarui');
+          closeModal(); renderBuyers();
+        };
+      },60);
     }
-    function saveBuyerModal(){ const data={ name: document.getElementById('b_name').value.trim(), phone: document.getElementById('b_phone').value.trim(), address: document.getElementById('b_address').value.trim() }; try{ DataStore.addBuyer(data); toast('Pembeli ditambahkan'); closeModal(); renderBuyers(); }catch(e){ toast(e.message,'error'); } }
-    function editBuyer(id){ const b = DataStore.getBuyers().find(x=>x.id===id); openModal(`<h3>Edit Pembeli</h3><input type="hidden" id="eb_id" value="${b.id}"><label>Nama</label><input id="eb_name" value="${b.name}"><label>No HP</label><input id="eb_phone" value="${b.phone||''}"><label>Alamat</label><input id="eb_address" value="${b.address||''}"><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveEditBuyer()">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`); }
-    function saveEditBuyer(){ const id=document.getElementById('eb_id').value; DataStore.updateBuyer(id, { name: document.getElementById('eb_name').value.trim(), phone: document.getElementById('eb_phone').value.trim(), address: document.getElementById('eb_address').value.trim() }); toast('Pembeli diperbarui'); closeModal(); renderBuyers(); }
-    function deleteBuyer(id){ if(!confirm('Hapus pembeli?')) return; DataStore.deleteBuyer(id); toast('Pembeli dihapus'); renderBuyers(); }
 
-    document.getElementById('btnAddBuyer').addEventListener('click', openAddBuyerModal);
-    showFab(openAddBuyerModal, 'Tambah Pembeli');
+    function deleteBuyer(id){
+      if(!confirm('Hapus pembeli?')) return;
+      DataStore.deleteBuyer(id);
+      toast('Pembeli dihapus');
+      renderBuyers();
+    }
 
+    document.getElementById('searchBuyers').addEventListener('input', renderBuyers);
     renderBuyers();
   </script>
 </body>

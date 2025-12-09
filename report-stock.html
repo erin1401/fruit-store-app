@@ -1,42 +1,37 @@
 <!doctype html>
 <html lang="id">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laporan Persediaan — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body class="fade-in">
-
+<body>
   <div class="sidebar">
-    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
+    <img src="assets/logo.svg" style="width:100px;display:block;margin:6px auto">
+    <div class="app-name">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Barang Masuk</a>
-    <a href="stock-out.html">Barang Keluar</a>
+    <a href="stock-in.html">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
     <a href="opname.html">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html" class="active">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
-    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
-    <a href="users.html">Manajemen User</a>
+    <a href="users.html">User Management</a>
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Laporan Persediaan</h1><div id="userBox"></div></div>
+    <div class="topbar"><h1>Laporan Persediaan</h1><div id="userBox"></div></div>
 
-    <div class="card" style="margin-top:14px">
-      <input id="searchStock" placeholder="Cari barang..." style="max-width:360px">
+    <div class="card">
+      <input id="searchStock" placeholder="Cari barang..." style="max-width:420px">
       <table id="rStockTable" style="margin-top:12px"><thead><tr><th>Nama</th><th>Stok Awal</th><th>Masuk</th><th>Keluar</th><th>Penjualan</th><th>Penyesuaian</th><th>Stok Akhir</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
 
-  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
   <div id="globalToast" class="toast"></div>
-
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
-    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
-    document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
+    checkLogin(); activateSidebarLinks();
 
     function renderStockReport(){
       const items = DataStore.getItems();
@@ -50,7 +45,7 @@
         const masuk = stockIn.filter(s=>s.itemId===i.id).reduce((a,b)=>a+b.qty,0);
         const keluar = stockOut.filter(s=>s.itemId===i.id).reduce((a,b)=>a+b.qty,0);
         const jual = sales.flatMap(s=>s.items).filter(it=>it.itemId===i.id).reduce((a,b)=>a+b.qty,0);
-        const penyesuaian = opname.filter(o=>o.itemId===i.id).reduce((a,b)=>a+b.diff||0,0);
+        const penyesuaian = opname.filter(o=>o.itemId===i.id).reduce((a,b)=>a+(b.diff||0),0);
         const stokAwal = i.stock - masuk + keluar + jual - penyesuaian;
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${i.name}</td><td>${stokAwal}</td><td>${masuk}</td><td>${keluar}</td><td>${jual}</td><td>${penyesuaian}</td><td><b>${i.stock}</b></td>`;

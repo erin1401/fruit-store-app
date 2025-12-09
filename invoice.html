@@ -1,35 +1,21 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invoice — Juragan Buah</title><link rel="stylesheet" href="styles.css"><style>.invoice{max-width:800px;margin:20px auto;padding:22px;background:#fff;border-radius:8px;border:1px solid #eee}.print-btn{float:right;background:#27ae60;color:#fff;padding:8px 12px;border:none;border-radius:6px;cursor:pointer}</style></head>
-<body class="fade-in">
-
-  <div class="invoice" id="inv">
-    <button class="print-btn" onclick="window.print()">Print</button>
-    <h2>Invoice — Juragan Buah</h2>
-    <div id="meta"></div>
-    <table class="table" id="invTable" style="margin-top:12px"><thead><tr><th>Kode</th><th>Nama</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody></tbody><tfoot><tr><td colspan="4" style="text-align:right"><b>Total</b></td><td id="invTotal"></td></tr></tfoot></table>
-    <p style="color:#666;margin-top:10px">Terima kasih atas pembelian Anda.</p>
-  </div>
-
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invoice — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+  <div id="content" class="card invoice" style="max-width:720px;margin:20px auto"></div>
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
-    const saleId = params.get('id') || null;
-    const invNo = params.get('invoice') || null;
-    const sales = DataStore.getSales();
-    const sale = saleId ? sales.find(s=>s.id===saleId) : (invNo ? sales.find(s=>s.invoice===invNo): null);
-    if(!sale){ document.getElementById('meta').innerHTML = '<p style="color:#e74c3c">Transaksi tidak ditemukan.</p>'; }
+    const id = params.get('id');
+    const sale = DataStore.getSales().find(s=>s.id===id);
+    const out = document.getElementById('content');
+    if(!sale){ out.innerHTML = '<p>Transaksi tidak ditemukan</p>'; }
     else {
-      document.getElementById('meta').innerHTML = `<div><strong>Invoice:</strong> ${sale.id} — <strong>Tanggal:</strong> ${formatTanggal(sale.date)}</div><div><strong>Pembeli:</strong> ${sale.buyerName || '-'}</div>`;
-      const tbody = document.querySelector('#invTable tbody'); let total=0;
-      sale.items.forEach(it=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${it.code||''}</td><td>${it.name}</td><td>${it.qty}</td><td>${formatRupiah(it.price)}</td><td>${formatRupiah(it.qty*it.price)}</td>`;
-        tbody.appendChild(tr);
-        total += it.qty*it.price;
-      });
-      document.getElementById('invTotal').innerText = formatRupiah(total);
+      let html = `<h2>Invoice — Juragan Buah</h2><div>Invoice: ${sale.id}</div><div>Tanggal: ${formatTanggal(sale.date)}</div><table style="width:100%;margin-top:12px"><thead><tr><th>Nama</th><th>Qty</th><th>Harga</th></tr></thead><tbody>`;
+      sale.items.forEach(i=> html += `<tr><td>${i.name}</td><td>${i.qty}</td><td>${formatRupiah(i.price)}</td></tr>`);
+      html += `</tbody></table><div style="text-align:right;margin-top:12px"><b>Total: ${formatRupiah(sale.total)}</b></div><div style="margin-top:8px">Terima kasih</div>`;
+      out.innerHTML = html;
     }
   </script>
 </body>

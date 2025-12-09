@@ -1,56 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard — Juragan Buah</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+<body>
+  <!-- sidebar -->
+  <div class="sidebar">
+    <img src="assets/logo.svg" alt="Juragan Buah" style="width:100px;display:block;margin:6px auto">
+    <div class="app-name">Juragan Buah</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="items.html">Master Item</a>
+    <a href="buyers.html">Pembeli</a>
+    <a href="stock-in.html">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
+    <a href="opname.html">Stok Opname</a>
+    <a href="sales.html">Penjualan</a>
+    <a href="report-sales.html">Laporan Penjualan</a>
+    <a href="report-stock.html">Laporan Persediaan</a>
+    <a href="report-profit.html">Laba Rugi</a>
+    <a href="users.html">User Management</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
 
-<body class="fade-in">
-
-<!-- Sidebar -->
-<div class="sidebar">
-  <h2>Juragan Buah</h2>
-
-  <a href="dashboard.html">Dashboard</a>
-  <a href="items.html">Master Item</a>
-  <a href="buyers.html">Pembeli</a>
-  <a href="stock-in.html">Item Masuk</a>
-  <a href="stock-out.html">Item Keluar</a>
-  <a href="opname.html">Stok Opname</a>
-  <a href="sales.html">Penjualan</a>
-  <a href="report-sales.html">Laporan Penjualan</a>
-  <a href="report-stock.html">Laporan Persediaan</a>
-  <a href="report-profit.html">Laba Rugi</a>
-</div>
-
-<!-- Main -->
-<div class="main">
-
-  <div class="topbar">
-      <div>
-         <img src="assets/logo.png" class="logo"> 
-         <b>Dashboard</b>
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img src="assets/logo.svg" style="width:36px">
+        <div>
+          <h1 style="margin:0">Dashboard</h1>
+          <small id="page-sub">Ringkasan</small>
+        </div>
       </div>
-      <button class="btn" id="toggleDark">Mode</button>
+      <div id="userBox"></div>
+    </div>
+
+    <div class="container">
+      <div class="card grid-4" id="kpis">
+        <div><h4>Total Penjualan</h4><div id="k_total">Rp 0</div></div>
+        <div><h4>Transaksi</h4><div id="k_count">0</div></div>
+        <div><h4>Total Item</h4><div id="k_items">0</div></div>
+        <div><h4>Stok Rendah</h4><div id="k_low">0</div></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h3>Ringkasan Penjualan (7 hari)</h3>
+        <div id="chartArea">[grafik placeholder]</div>
+      </div>
+    </div>
   </div>
 
-  <h2>Selamat Datang 👋</h2>
+  <div id="globalToast" class="toast"></div>
 
-  <div class="card">
-    <h3>Grafik Penjualan (placeholder)</h3>
-    <canvas id="chart1" height="80"></canvas>
-  </div>
+  <script src="utils.js"></script>
+  <script src="data.js"></script>
+  <script>
+    // auth + sidebar links
+    checkLogin();
+    activateSidebarLinks();
 
-</div>
-
-<div id="toast" class="toast"></div>
-
-<script src="utils.js"></script>
-<script src="data.js"></script>
-<script>
-  // Chart placeholder
-</script>
-
+    const items = DataStore.getItems();
+    document.getElementById('k_items').innerText = items.length;
+    const sales = DataStore.getSales();
+    const total = sales.reduce((s,x)=>s + Number(x.total||0),0);
+    document.getElementById('k_total').innerText = formatRupiah(total);
+    document.getElementById('k_count').innerText = sales.length;
+    document.getElementById('k_low').innerText = items.filter(i=>Number(i.stock)<=5).length;
+  </script>
 </body>
 </html>

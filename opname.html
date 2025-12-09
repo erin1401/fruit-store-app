@@ -1,52 +1,41 @@
 <!doctype html>
 <html lang="id">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stok Opname — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body class="fade-in">
-
+<body>
   <div class="sidebar">
-    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
+    <img src="assets/logo.svg" style="width:100px;display:block;margin:6px auto">
+    <div class="app-name">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Barang Masuk</a>
-    <a href="stock-out.html">Barang Keluar</a>
+    <a href="stock-in.html">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
     <a href="opname.html" class="active">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
-    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
-    <a href="users.html">Manajemen User</a>
+    <a href="users.html">User Management</a>
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center">
-      <h1 style="margin:0">Stok Opname</h1>
-      <div id="userBox"></div>
-    </div>
+    <div class="topbar"><h1>Stok Opname</h1><div id="userBox"></div></div>
 
-    <div class="card" style="margin-top:14px">
-      <p>Sesuaikan stok fisik untuk tiap item.</p>
-      <input id="searchOpname" placeholder="Cari nama barang..." style="max-width:360px">
+    <div class="card">
+      <input id="searchOpname" placeholder="Cari barang..." style="max-width:420px">
       <table id="opnameTable" style="margin-top:12px"><thead><tr><th>Nama</th><th>Stok Sistem</th><th>Stok Fisik</th><th>Selisih</th><th>Aksi</th></tr></thead><tbody></tbody></table>
     </div>
 
-    <div class="card" style="margin-top:14px">
-      <h4>Riwayat Opname</h4>
-      <table id="opnameHistory"><thead><tr><th>Tanggal</th><th>Barang</th><th>System</th><th>Fisik</th><th>Selisih</th></tr></thead><tbody></tbody></table>
-    </div>
+    <div class="card" style="margin-top:14px"><h4>Riwayat Opname</h4><table id="opnameHistory"><thead><tr><th>Tanggal</th><th>Barang</th><th>System</th><th>Fisik</th><th>Selisih</th></tr></thead><tbody></tbody></table></div>
   </div>
 
   <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
   <div id="globalToast" class="toast"></div>
-  <div id="globalFab" class="fab hidden">＋</div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
-    const session = loadJSON('sessionUser', null); if(!session) location.href='login.html';
-    document.getElementById('userBox').innerText = `👤 ${session.name||session.username} (${session.role})`;
+    checkLogin(); activateSidebarLinks();
 
     function renderOpname(){
       const items = DataStore.getItems();
@@ -54,9 +43,9 @@
       const tbody = document.querySelector('#opnameTable tbody'); tbody.innerHTML='';
       items.filter(i=>i.name.toLowerCase().includes(kw)).forEach(it=>{
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${it.name}</td><td>${it.stock}</td><td><input type="number" id="fisik_${it.id}" value="${it.stock}" style="width:110px;padding:6px"></td><td id="diff_${it.id}">0</td><td><button class="btn" onclick="applyOpname('${it.id}')">Sesuaikan</button></td>`;
+        tr.innerHTML = `<td>${it.name}</td><td>${it.stock}</td><td><input type="number" id="fisik_${it.id}" value="${it.stock}" style="width:100px"></td><td id="diff_${it.id}">0</td><td><button class="btn" onclick="applyOpname('${it.id}')">Sesuaikan</button></td>`;
         tbody.appendChild(tr);
-        document.getElementById(`fisik_${it.id}`).addEventListener('input', ()=> {
+        document.getElementById(`fisik_${it.id}`).addEventListener('input', ()=>{
           const fisik = Number(document.getElementById(`fisik_${it.id}`).value)||0;
           document.getElementById(`diff_${it.id}`).innerText = fisik - it.stock;
         });
@@ -65,17 +54,15 @@
 
     function applyOpname(id){
       const fisik = Number(document.getElementById(`fisik_${id}`).value)||0;
-      DataStore.recordStockOpname([{ itemId: id, physical: fisik, reason:'Opname manual' }]);
-      toast('Stok disesuaikan');
-      renderOpname();
-      renderOpnameHistory();
+      DataStore.recordStockOpname([{ itemId: id, physical: fisik, reason: 'Opname manual' }]);
+      toast('Stok disesuaikan'); renderOpname(); renderOpnameHistory();
     }
 
     function renderOpnameHistory(){
       const hist = DataStore.getStockOpname().slice().reverse();
       const tbody = document.querySelector('#opnameHistory tbody'); tbody.innerHTML='';
       const items = DataStore.getItems();
-      hist.forEach(h => {
+      hist.forEach(h=>{
         const it = items.find(x=>x.id===h.itemId);
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${formatTanggal(h.date)}</td><td>${it?.name||'-'}</td><td>${h.system}</td><td>${h.physical}</td><td>${h.diff}</td>`;
@@ -84,8 +71,7 @@
     }
 
     document.getElementById('searchOpname').addEventListener('input', renderOpname);
-    renderOpname();
-    renderOpnameHistory();
+    renderOpname(); renderOpnameHistory();
   </script>
 </body>
 </html>

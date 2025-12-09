@@ -1,60 +1,51 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Login — Juragan Buah</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+<body class="center-page">
+  <div class="card login-card">
+    <img src="assets/logo.svg" alt="Juragan Buah" style="width:100px;display:block;margin:0 auto 12px">
+    <h2 style="text-align:center;margin:0 0 8px">Juragan Buah</h2>
 
-<body class="fade-in">
+    <label>Username</label>
+    <input id="username" placeholder="username">
 
-<div class="login-box">
-    <img src="assets/logo.png" class="login-logo">
-    <h2>Juragan Buah</h2>
+    <label>Password</label>
+    <input id="password" type="password" placeholder="password">
 
-    <div class="card login-card">
-        <label>Username</label>
-        <input id="user" type="text">
-
-        <label>Password</label>
-        <input id="pass" type="password">
-
-        <button class="btn" onclick="doLogin()">Masuk</button>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn" id="btnLogin">Masuk</button>
+      <button class="btn btn-danger" id="btnClear">Bersihkan</button>
     </div>
-</div>
 
-<div id="toast" class="toast"></div>
+    <p style="color:#666;margin-top:10px;font-size:13px">Default: admin/admin • kasir/kasir</p>
+  </div>
 
-<script src="utils.js"></script>
+  <div id="globalToast" class="toast"></div>
 
-<script>
-function doLogin(){
-    let u = user.value.trim();
-    let p = pass.value.trim();
+  <script src="utils.js"></script>
+  <script src="data.js"></script>
+  <script>
+    // if already logged -> dashboard
+    if (loadJSON('sessionUser')) location.href = 'dashboard.html';
 
-    if(u === "admin" && p === "admin"){
-        toast("Login berhasil!");
-        setTimeout(()=>location.href="dashboard.html", 800);
-    } else {
-        toast("Username/password salah");
-    }
-}
-</script>
+    document.getElementById('btnClear').onclick = ()=>{
+      username.value=''; password.value='';
+    };
 
-<style>
-.login-box{
-  max-width: 360px;
-  margin: 90px auto;
-  text-align: center;
-}
-.login-logo{
-  width: 120px;
-  margin-bottom: 10px;
-}
-.login-card{
-  margin-top: 20px;
-}
-</style>
-
+    document.getElementById('btnLogin').onclick = ()=>{
+      const u = username.value.trim(); const p = password.value.trim();
+      if(!u||!p){ toast('Isi username & password','warn'); return; }
+      const user = DataStore.authenticate(u,p);
+      if(!user){ toast('Username / password salah','error'); return; }
+      saveJSON('sessionUser', user);
+      toast('Login berhasil');
+      setTimeout(()=> location.href='dashboard.html', 500);
+    };
+  </script>
 </body>
 </html>

@@ -1,35 +1,29 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Manajemen User — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
-<body class="fade-in">
-
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>User Management — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<body>
   <div class="sidebar">
-    <img src="assets/logo.png" alt="Juragan Buah" style="width:120px;display:block;margin:0 auto 10px">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Juragan Buah</div>
+    <img src="assets/logo.svg" style="width:100px;display:block;margin:6px auto">
+    <div class="app-name">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Barang Masuk</a>
-    <a href="stock-out.html">Barang Keluar</a>
+    <a href="stock-in.html">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
     <a href="opname.html">Stok Opname</a>
     <a href="sales.html">Penjualan</a>
     <a href="report-sales.html">Laporan Penjualan</a>
     <a href="report-stock.html">Laporan Persediaan</a>
     <a href="report-profit.html">Laba Rugi</a>
-    <hr style="border-color: rgba(255,255,255,0.06);margin-top:12px">
-    <a href="users.html" class="active">Manajemen User</a>
+    <a href="users.html" class="active">User Management</a>
   </div>
 
   <div class="main">
-    <div class="topbar card" style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0">Manajemen User</h1><div id="userBox"></div></div>
+    <div class="topbar"><h1>Manajemen User</h1><div id="userBox"></div></div>
 
-    <div class="card" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
-      <div></div>
-      <div><button class="btn" id="btnAddUser">+ Tambah User</button></div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <table id="usersTable"><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Aksi</th></tr></thead><tbody></tbody></table>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div></div><div><button class="btn" id="btnAddUser">+ Tambah User</button></div></div>
+      <table id="usersTable" style="margin-top:12px"><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Aksi</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
 
@@ -39,30 +33,51 @@
   <script src="utils.js"></script>
   <script src="data.js"></script>
   <script>
-    const sessionUser = loadJSON('sessionUser', null); if(!sessionUser) location.href='login.html';
-    if(sessionUser.role !== 'admin'){ alert('Hanya admin'); location.href='dashboard.html'; }
-    document.getElementById('userBox').innerText = `👤 ${sessionUser.name||sessionUser.username} (${sessionUser.role})`;
+    checkLogin(); activateSidebarLinks();
+    const me = loadJSON('sessionUser') || null;
+    if(!me || me.role !== 'admin'){ alert('Hanya admin boleh mengakses halaman ini'); location.href='dashboard.html'; }
+    document.getElementById('userBox').innerText = `👤 ${me.name||me.username}`;
 
-    function renderUsersPage(){
-      const t = document.querySelector('#usersTable tbody'); t.innerHTML='';
-      DataStore.getUsers().forEach(u=>{
+    function renderUsers(){
+      const u = DataStore.getUsers();
+      const tbody = document.querySelector('#usersTable tbody'); tbody.innerHTML='';
+      u.forEach(x=> {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${u.username}</td><td>${u.name||'-'}</td><td>${u.role}</td><td><button class="btn" onclick="editUser('${u.id}')">Edit</button> <button class="btn btn-danger" onclick="deleteUserConfirm('${u.id}')">Hapus</button></td>`;
-        t.appendChild(tr);
+        tr.innerHTML = `<td>${x.username}</td><td>${x.name||'-'}</td><td>${x.role}</td><td><button class="btn" onclick="editUser('${x.id}')">Edit</button> <button class="btn btn-danger" onclick="delUser('${x.id}')">Hapus</button></td>`;
+        tbody.appendChild(tr);
       });
     }
 
-    document.getElementById('btnAddUser').addEventListener('click', ()=> {
-      openModal(`<h3>Tambah User</h3><label>Username</label><input id="u_username"><label>Nama</label><input id="u_name"><label>Password</label><input id="u_pass" type="password"><label>Role</label><select id="u_role"><option value="kasir">kasir</option><option value="admin">admin</option></select><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveNewUser()">Simpan</button></div>`);
+    document.getElementById('btnAddUser').addEventListener('click', ()=>{
+      openModal(`<h3>Tambah User</h3><label>Username</label><input id="u_username"><label>Nama</label><input id="u_name"><label>Password</label><input id="u_pass" type="password"><label>Role</label><select id="u_role"><option value="kasir">kasir</option><option value="admin">admin</option></select><div style="text-align:right;margin-top:12px"><button class="btn" id="saveUser">Simpan</button></div>`);
+      setTimeout(()=> {
+        document.getElementById('saveUser').onclick = ()=> {
+          const username = document.getElementById('u_username').value.trim();
+          const name = document.getElementById('u_name').value.trim();
+          const password = document.getElementById('u_pass').value || '123456';
+          const role = document.getElementById('u_role').value;
+          if(!username){ toast('Username wajib','warn'); return; }
+          DataStore.addUser({ username, password, name, role });
+          toast('User ditambahkan'); closeModal(); renderUsers();
+        };
+      },60);
     });
 
-    function saveNewUser(){ try{ DataStore.addUser({ username: document.getElementById('u_username').value.trim(), password: document.getElementById('u_pass').value || '123456', name: document.getElementById('u_name').value.trim(), role: document.getElementById('u_role').value }); toast('User ditambahkan'); closeModal(); renderUsersPage(); }catch(e){ toast(e.message,'error'); } }
+    function delUser(id){ if(!confirm('Hapus user?')) return; DataStore.deleteUser(id); toast('User dihapus'); renderUsers(); }
+    function editUser(id){
+      const u = DataStore.getUsers().find(x=>x.id===id);
+      openModal(`<h3>Edit User</h3><input type="hidden" id="eu_id" value="${u.id}"><label>Nama</label><input id="eu_name" value="${u.name||''}"><label>Password (kosong=tidak diubah)</label><input id="eu_pass" type="password"><label>Role</label><select id="eu_role"><option ${u.role==='admin'?'selected':''} value="admin">admin</option><option ${u.role==='kasir'?'selected':''} value="kasir">kasir</option></select><div style="text-align:right;margin-top:12px"><button class="btn" id="saveEditUser">Simpan</button></div>`);
+      setTimeout(()=> {
+        document.getElementById('saveEditUser').onclick = ()=>{
+          const id = document.getElementById('eu_id').value;
+          const patch = { name: document.getElementById('eu_name').value.trim(), role: document.getElementById('eu_role').value };
+          const pw = document.getElementById('eu_pass').value; if(pw) patch.password = pw;
+          DataStore.updateUser(id, patch); toast('User diperbarui'); closeModal(); renderUsers();
+        };
+      },60);
+    }
 
-    function deleteUserConfirm(id){ if(!confirm('Hapus user?')) return; DataStore.deleteUser(id); toast('User dihapus'); renderUsersPage(); }
-    function editUser(id){ const u = DataStore.getUsers().find(x=>x.id===id); openModal(`<h3>Edit User</h3><input type="hidden" id="eu_id" value="${u.id}"><label>Nama</label><input id="eu_name" value="${u.name||''}"><label>Password (kosong = tidak diubah)</label><input id="eu_pass" type="password"><label>Role</label><select id="eu_role"><option ${u.role==='admin'?'selected':''} value="admin">admin</option><option ${u.role==='kasir'?'selected':''} value="kasir">kasir</option></select><div style="text-align:right;margin-top:12px"><button class="btn" onclick="saveEditUser()">Simpan</button></div>`); }
-    function saveEditUser(){ const id=document.getElementById('eu_id').value; const patch={ name: document.getElementById('eu_name').value.trim(), role: document.getElementById('eu_role').value }; const pw=document.getElementById('eu_pass').value; if(pw) patch.password=pw; DataStore.updateUser(id, patch); toast('User diperbarui'); closeModal(); renderUsersPage(); }
-
-    renderUsersPage();
+    renderUsers();
   </script>
 </body>
 </html>
