@@ -1,0 +1,28 @@
+:root {
+  --primary: #2ecc71;
+  --primary-dark: #27ae60;
+  --bg: #f4fff4;
+  --text: #333;
+  --card: #ffffff;
+  --border: #dcdcdc;
+  --danger: #e74c3c;
+}
+body {
+  margin:0;font-family:Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text);
+}
+/* navbar / sidebar / main layout */
+.navbar{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;padding:0 16px;justify-content:space-between}
+.sidebar{width:240px;background:var(--primary);color:#fff;position:fixed;top:0;bottom:0;padding:18px;box-sizing:border-box}
+.main{margin-left:240px;padding:20px}
+.card{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:8px;margin-bottom:12px}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:8px;border:1px solid #e6e6e6}
+.table th{background:var(--primary);color:#fff}
+.input, input, select, textarea{padding:8px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box}
+.btn{padding:8px 12px;border-radius:6px;border:none;background:var(--primary);color:#fff;cursor:pointer}
+.btn-danger{background:var(--danger)}
+.btn-secondary{background:#bdc3c7;color:#111}
+.small-muted{color:#666;font-size:13px}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);z-index:999}
+.modal .modal-content{background:var(--card);padding:18px;border-radius:8px;width:100%;max-width:560px}
+@media(max-width:780px){.sidebar{position:relative;width:100%;height:auto}.main{margin-left:0}}
