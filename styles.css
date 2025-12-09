@@ -1,28 +1,172 @@
-:root {
-  --primary: #2ecc71;
-  --primary-dark: #27ae60;
-  --bg: #f4fff4;
-  --text: #333;
-  --card: #ffffff;
-  --border: #dcdcdc;
-  --danger: #e74c3c;
+/* ========== GLOBAL ========== */
+* {
+  box-sizing: border-box;
 }
+
 body {
-  margin:0;font-family:Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text);
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7f5;
+  display: flex;
+  min-height: 100vh;
 }
-/* navbar / sidebar / main layout */
-.navbar{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;padding:0 16px;justify-content:space-between}
-.sidebar{width:240px;background:var(--primary);color:#fff;position:fixed;top:0;bottom:0;padding:18px;box-sizing:border-box}
-.main{margin-left:240px;padding:20px}
-.card{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:8px;margin-bottom:12px}
-.table{width:100%;border-collapse:collapse}
-.table th,.table td{padding:8px;border:1px solid #e6e6e6}
-.table th{background:var(--primary);color:#fff}
-.input, input, select, textarea{padding:8px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box}
-.btn{padding:8px 12px;border-radius:6px;border:none;background:var(--primary);color:#fff;cursor:pointer}
-.btn-danger{background:var(--danger)}
-.btn-secondary{background:#bdc3c7;color:#111}
-.small-muted{color:#666;font-size:13px}
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);z-index:999}
-.modal .modal-content{background:var(--card);padding:18px;border-radius:8px;width:100%;max-width:560px}
-@media(max-width:780px){.sidebar{position:relative;width:100%;height:auto}.main{margin-left:0}}
+
+/* Headings */
+h1, h2, h3, h4 {
+  margin: 0 0 15px 0;
+  color: #222;
+}
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+  width: 240px;
+  background: #28a745;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sidebar a {
+  display: block;
+  padding: 10px;
+  margin-bottom: 10px;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: 0.2s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== MAIN CONTENT ========== */
+.main {
+  margin-left: 240px;            /* FIX TERPENTING */
+  padding: 20px;
+  width: calc(100% - 240px);     /* AGAR TIDAK TERTIMPA SIDEBAR */
+  min-height: 100vh;
+}
+
+/* Containers */
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+/* ========== FORM & INPUT ========== */
+input, select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.btn {
+  background: #28a745;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #218838;
+}
+
+.btn-danger {
+  background: #dc3545;
+}
+
+.btn-danger:hover {
+  background: #b52a36;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: white;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+th {
+  background: #28a745;
+  color: white;
+}
+
+/* ========== SEARCH BOX ========== */
+.search-box {
+  max-width: 300px;
+  margin-bottom: 15px;
+}
+
+/* ========== FLEX LAYOUT ========== */
+.row {
+  display: flex;
+  gap: 15px;
+}
+
+.col {
+  flex: 1;
+}
+
+/* ========== RESPONSIVE FIX ========== */
+@media (max-width: 768px) {
+
+  .sidebar {
+    width: 200px;
+  }
+
+  .main {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+  }
+
+}
+
+@media (max-width: 600px) {
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+}
