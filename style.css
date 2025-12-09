@@ -270,4 +270,33 @@ body.dark .table td {
   }
 }
 
+/* Global layout fix */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background: #f5f7f5;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: #28a745;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Main content area */
+.main {
+  margin-left: 240px;     /* FIX: Agar tidak tertutup sidebar */
+  padding: 20px;
+  width: calc(100% - 240px);
+  box-sizing: border-box;
+}
+
 
