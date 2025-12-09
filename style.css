@@ -1,0 +1,270 @@
+/* =========================================================
+   GLOBAL STYLE — Fruit Store App
+   Tema: Hijau Segar + Dark Mode
+   ========================================================= */
+
+:root {
+  --primary: #2ecc71;
+  --primary-dark: #27ae60;
+  --bg: #f4fff4;
+  --text: #333;
+  --card: #ffffff;
+  --border: #dcdcdc;
+
+  /* Dark Mode */
+  --dark-bg: #1e1f1e;
+  --dark-card: #2a2b2a;
+  --dark-text: #e8e8e8;
+  --dark-border: #3e3e3e;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Dark Mode Active */
+body.dark {
+  background: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+/* ======================================
+   Top Navbar
+   ====================================== */
+.navbar {
+  width: 100%;
+  height: 58px;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  justify-content: space-between;
+}
+
+.navbar .logo {
+  font-size: 23px;
+  font-weight: bold;
+}
+
+.navbar button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--primary-dark);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Dark Navbar */
+body.dark .navbar {
+  background: #145a32;
+}
+
+body.dark .navbar button {
+  background: var(--dark-card);
+  color: var(--dark-text);
+}
+
+/* ======================================
+   Sidebar
+   ====================================== */
+.sidebar {
+  width: 250px;
+  background: #ffffff;
+  position: fixed;
+  top: 58px;
+  left: 0;
+  bottom: 0;
+  padding: 12px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+
+body.dark .sidebar {
+  background: var(--dark-card);
+  border-right: 1px solid var(--dark-border);
+}
+
+.sidebar h3 {
+  margin-top: 8px;
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.sidebar a {
+  display: block;
+  padding: 10px 12px;
+  margin: 6px 0;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.sidebar a:hover {
+  background: var(--primary-dark);
+}
+
+.sidebar .danger {
+  background: #e74c3c;
+}
+
+.sidebar .danger:hover {
+  background: #c0392b;
+}
+
+/* Dark mode links */
+body.dark .sidebar a {
+  background: #145a32;
+}
+
+body.dark .sidebar a:hover {
+  background: #0b3d21;
+}
+
+/* ======================================
+   Content Area
+   ====================================== */
+.content {
+  margin-left: 260px;
+  padding: 20px;
+}
+
+/* ======================================
+   Cards
+   ====================================== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 18px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+body.dark .card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+/* ======================================
+   Forms & Inputs
+   ====================================== */
+.input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 15px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+body.dark .input,
+body.dark select,
+body.dark textarea {
+  background: #1e1f1e;
+  border: 1px solid #555;
+  color: #eaeaea;
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+button:hover {
+  background: var(--primary-dark);
+}
+
+/* ======================================
+   Table
+   ====================================== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table th,
+.table td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.table th {
+  background: var(--primary);
+  color: white;
+}
+
+body.dark .table th {
+  background: #145a32;
+}
+
+body.dark .table td {
+  border-color: var(--dark-border);
+}
+
+/* ======================================
+   Dark Mode Toggle
+   ====================================== */
+.dark-toggle {
+  transform: scale(1.4);
+  cursor: pointer;
+}
+
+/* ======================================
+   Buttons variants
+   ====================================== */
+.btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-danger {
+  background: #e74c3c !important;
+  color: #fff;
+}
+
+.btn-warning {
+  background: #f1c40f !important;
+}
+
+.btn-secondary {
+  background: #bdc3c7 !important;
+  color: #333;
+}
+
+/* ======================================
+   Responsive
+   ====================================== */
+@media (max-width: 780px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    top: 0;
+    height: auto;
+  }
+
+  .content {
+    margin-left: 0;
+  }
+}

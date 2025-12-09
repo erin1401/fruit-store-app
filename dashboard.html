@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Fruit Store App</title>
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7f5;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #28a745;
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .menu {
+      margin-top: 25px;
+    }
+
+    .menu a {
+      display: block;
+      padding: 12px;
+      margin-bottom: 8px;
+      color: white;
+      text-decoration: none;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .menu a:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      padding: 25px;
+      flex-grow: 1;
+    }
+
+    /* Header */
+    .top-bar {
+      background: #fff;
+      padding: 15px 20px;
+      margin: -25px -25px 20px -25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .top-bar .user {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .logout-btn {
+      background: #dc3545;
+      color: white;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .logout-btn:hover {
+      background: #c82333;
+    }
+
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .card h3 {
+      margin: 10px 0 5px;
+      font-size: 26px;
+      color: #28a745;
+    }
+
+    .card p {
+      color: #555;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>🍏 Fruit Store</h2>
+
+    <div class="menu">
+      <a href="items.html">Master Item</a>
+      <a href="buyers.html">Pembeli</a>
+      <a href="stock-in.html">Item Masuk</a>
+      <a href="stock-out.html">Item Keluar</a>
+      <a href="opname.html">Stok Opname</a>
+      <a href="sales.html">Penjualan</a>
+      <a href="report-sales.html">Laporan Penjualan</a>
+      <a href="report-stock.html">Laporan Persediaan</a>
+      <a href="report-profit.html">Laba Rugi</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="top-bar">
+      <div class="user" id="userInfo"></div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <h2>Dashboard</h2>
+    <p>Ringkasan aktivitas toko buah hari ini:</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3 id="todaySales">0</h3>
+        <p>Transaksi Hari Ini</p>
+      </div>
+
+      <div class="card">
+        <h3 id="todayRevenue">Rp 0</h3>
+        <p>Total Pendapatan Hari Ini</p>
+      </div>
+
+      <div class="card">
+        <h3 id="lowStock">0</h3>
+        <p>Item Stok Rendah (≤ 5)</p>
+      </div>
+
+      <div class="card">
+        <h3 id="totalItems">0</h3>
+        <p>Total Item Barang</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="data.js"></script>
+
+  <script>
+    const session = loadJSON("sessionUser", null);
+    if (!session) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("userInfo").innerText =
+      `👤 ${session.name} (${session.role})`;
+
+    function logout() {
+      localStorage.removeItem("sessionUser");
+      showToast("Logout berhasil!", "success");
+      setTimeout(() => window.location.href = "login.html", 600);
+    }
+
+    function loadDashboard() {
+      const today = new Date().toISOString().slice(0, 10);
+
+      const sales = DataStore.getSales();
+      const salesToday = sales.filter(s => s.date.startsWith(today));
+
+      const revenueToday = salesToday.reduce((sum, s) => sum + Number(s.total), 0);
+
+      const items = DataStore.getItems();
+      const lowStock = items.filter(i => Number(i.stock) <= 5);
+
+      document.getElementById("todaySales").innerText = salesToday.length;
+      document.getElementById("todayRevenue").innerText = formatRupiah(revenueToday);
+      document.getElementById("lowStock").innerText = lowStock.length;
+      document.getElementById("totalItems").innerText = items.length;
+    }
+
+    loadDashboard();
+  </script>
+
+</body>
+</html>
