@@ -240,3 +240,20 @@ function disableEnterSubmit(formSelector) {
 function go(url) {
   window.location.href = url;
 }
+
+// Auto set active sidebar menu
+const links = document.querySelectorAll(".sidebar a");
+links.forEach(a => {
+  if (a.href.includes(location.pathname.split("/").pop())) {
+    a.classList.add("active");
+  }
+});
+
+document.querySelectorAll(".btn").forEach(btn => {
+  btn.addEventListener("click", function(e) {
+    let x = e.clientX - e.target.offsetLeft;
+    let y = e.clientY - e.target.offsetTop;
+    btn.style.setProperty("--x", x + "px");
+    btn.style.setProperty("--y", y + "px");
+  });
+});
