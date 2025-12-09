@@ -76,15 +76,15 @@ body.dark .navbar button {
    Sidebar
    ====================================== */
 .sidebar {
-  width: 250px;
-  background: #ffffff;
+  width: 240px;
+  background: #28a745;
+  height: 100vh;
   position: fixed;
-  top: 58px;
   left: 0;
-  bottom: 0;
-  padding: 12px;
-  overflow-y: auto;
-  border-right: 1px solid var(--border);
+  top: 0;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 body.dark .sidebar {
@@ -134,11 +134,12 @@ body.dark .sidebar a:hover {
 /* ======================================
    Content Area
    ====================================== */
-.content {
-  margin-left: 260px;
+.main {
+  margin-left: 240px;     /* FIX: Agar tidak tertutup sidebar */
   padding: 20px;
+  width: calc(100% - 240px);
+  box-sizing: border-box;
 }
-
 /* ======================================
    Cards
    ====================================== */
@@ -268,3 +269,5 @@ body.dark .table td {
     margin-left: 0;
   }
 }
+
+
