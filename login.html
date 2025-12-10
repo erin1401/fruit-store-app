@@ -1,51 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login — Juragan Buah</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Login - Juragan Buah</title>
+<link rel="stylesheet" href="styles.css">
+<script src="utils.js"></script>
+<script src="data.js"></script>
+<script src="login.js"></script>
 </head>
-<body class="center-page">
-  <div class="card login-card">
-    <img src="assets/logo.svg" alt="Juragan Buah" style="width:100px;display:block;margin:0 auto 12px">
-    <h2 style="text-align:center;margin:0 0 8px">Juragan Buah</h2>
 
-    <label>Username</label>
-    <input id="username" placeholder="username">
+<body>
 
-    <label>Password</label>
-    <input id="password" type="password" placeholder="password">
+<div class="login-container">
+  <div class="login-box">
+    <img src="assets/logo.png" class="login-logo">
+    <h2>Juragan Buah</h2>
 
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" id="btnLogin">Masuk</button>
-      <button class="btn btn-danger" id="btnClear">Bersihkan</button>
+    <div>
+      <label>Username</label>
+      <input type="text" id="u">
     </div>
 
-    <p style="color:#666;margin-top:10px;font-size:13px">Default: admin/admin • kasir/kasir</p>
+    <div>
+      <label>Password</label>
+      <input type="password" id="p">
+    </div>
+
+    <button class="btn" onclick="doLogin()">Login</button>
+
+    <div id="msg" style="color:red;margin-top:10px;"></div>
   </div>
+</div>
 
-  <div id="globalToast" class="toast"></div>
-
-  <script src="utils.js"></script>
-  <script src="data.js"></script>
-  <script>
-    // if already logged -> dashboard
-    if (loadJSON('sessionUser')) location.href = 'dashboard.html';
-
-    document.getElementById('btnClear').onclick = ()=>{
-      username.value=''; password.value='';
-    };
-
-    document.getElementById('btnLogin').onclick = ()=>{
-      const u = username.value.trim(); const p = password.value.trim();
-      if(!u||!p){ toast('Isi username & password','warn'); return; }
-      const user = DataStore.authenticate(u,p);
-      if(!user){ toast('Username / password salah','error'); return; }
-      saveJSON('sessionUser', user);
-      toast('Login berhasil');
-      setTimeout(()=> location.href='dashboard.html', 500);
-    };
-  </script>
 </body>
 </html>
