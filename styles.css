@@ -1,0 +1,290 @@
+/* =========================================================
+   styles.css — UI Level 3 (Final)
+   Juragan Buah
+   ========================================================= */
+
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  background: #f1f5f9;
+  display: flex;
+  color: #333;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+.sidebar {
+  width: 240px;
+  background: #0a7a32;
+  height: 100vh;
+  padding: 20px 15px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  color: #fff;
+}
+
+.sidebar-logo {
+  width: 70px;
+  margin: 0 auto;
+  display: block;
+}
+
+.app-name {
+  font-size: 20px;
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.sidebar a {
+  display: block;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: #fff;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.sidebar a:hover {
+  background: #0c923e;
+}
+
+.sidebar a.active {
+  background: #0fb94d;
+  color: #fff;
+}
+
+/* =========================================================
+   MAIN WRAPPER
+   ========================================================= */
+.main {
+  margin-left: 240px;
+  padding: 0;
+  width: calc(100% - 240px);
+}
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+.topbar {
+  height: 60px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar h1 {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* =========================================================
+   USER BOX (profile kecil kanan atas)
+   ========================================================= */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.user-info span {
+  font-weight: bold;
+}
+
+/* =========================================================
+   CONTENT
+   ========================================================= */
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #e1e5ea;
+}
+
+/* =========================================================
+   BUTTON
+   ========================================================= */
+.btn {
+  padding: 8px 15px;
+  background: #0a7a32;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #0c923e;
+}
+
+.btn-danger {
+  background: #b40000;
+}
+.btn-danger:hover {
+  background: #cc0000;
+}
+
+.btn-success {
+  background: #0e9b46;
+}
+.btn-success:hover {
+  background: #13b754;
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #e8f4ec;
+  font-weight: bold;
+}
+
+tr:hover {
+  background: #f5f5f5;
+}
+
+/* =========================================================
+   INPUT, SELECT
+   ========================================================= */
+input, select {
+  padding: 8px 10px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+}
+
+/* =========================================================
+   GRID
+   ========================================================= */
+.grid-2 {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+.modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal-box {
+  background: white;
+  width: 100%;
+  max-width: 480px;
+  padding: 20px;
+  border-radius: 10px;
+  animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+.toast {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: #0a7a32;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  opacity: 0;
+  display: none;
+  transition: 0.4s;
+  z-index: 200;
+}
+
+/* =========================================================
+   MOBILE RESPONSIVE
+   ========================================================= */
+@media(max-width: 820px) {
+
+  .sidebar {
+    width: 200px;
+  }
+
+  .main {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+  }
+}
+
+@media(max-width: 650px) {
+
+  body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .grid-2, .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}

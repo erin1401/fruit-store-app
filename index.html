@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#eef6ee;">
+    <div style="text-align:center">
+      <img src="assets/logo.svg" alt="Juragan Buah" style="width:120px">
+      <h2>Juragan Buah</h2>
+      <p>Memuat aplikasi...</p>
+    </div>
+  </div>
+
+  <script>
+    // simple redirect: go to login if not logged
+    const s = localStorage.getItem('sessionUser');
+    setTimeout(()=>{
+      if(s) location.href = 'dashboard.html';
+      else location.href = 'login.html';
+    },500);
+  </script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Management — Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="assets/logo.png" class="sidebar-logo">
+    <div class="app-name">Juragan Buah</div>
+
+    <a href="dashboard.html">Dashboard</a>
+    <a href="items.html">Master Item</a>
+    <a href="buyers.html">Pembeli</a>
+    <a href="stock-in.html">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
+    <a href="opname.html">Stok Opname</a>
+    <a href="sales.html">Penjualan</a>
+    <a href="report-sales.html">Laporan Penjualan</a>
+    <a href="report-stock.html">Laporan Persediaan</a>
+    <a href="report-profit.html">Laba Rugi</a>
+    <a class="active" href="users.html">User Management</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1>User Management</h1>
+      <div id="userBox"></div>
+    </div>
+
+    <div class="container">
+
+      <div class="card">
+        <button class="btn btn-success" onclick="openAddUser()">+ Tambah User</button>
+
+        <table id="tblUsers" style="margin-top:15px;">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Dibuat</th>
+              <th style="width:140px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GLOBAL MODAL -->
+  <div id="globalModal" class="modal-bg">
+    <div id="globalModalBox" class="modal-box"></div>
+  </div>
+
+  <!-- GLOBAL TOAST -->
+  <div id="globalToast" class="toast"></div>
+
+<script src="utils.js"></script>
+<script src="data.js"></script>
+
+<script>
+
+checkLogin();
+activateSidebarLinks();
+
+function loadUsers() {
+  const users = DataStore.getUsers();
+  const tbody = document.querySelector("#tblUsers tbody");
+  tbody.innerHTML = "";
+
+  users.forEach(u => {
+    let tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${u.username}</td>
+      <td>${u.role}</td>
+      <td>${u.created}</td>
+      <td>
+        <button class="btn" onclick="editUser('${u.id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteUser('${u.id}')">Hapus</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+loadUsers();
+
+
+// ======================
+// TAMBAH USER
+// ======================
+function openAddUser() {
+  openModal(`
+    <h3>Tambah User</h3>
+
+    <label>Username</label>
+    <input id="uUser" type="text">
+
+    <label>Password</label>
+    <input id="uPass" type="password">
+
+    <label>Role</label>
+    <select id="uRole">
+      <option value="admin">Admin</option>
+      <option value="kasir">Kasir</option>
+    </select>
+
+    <div style="text-align:right;margin-top:12px;">
+      <button class="btn btn-success" onclick="saveNewUser()">Simpan</button>
+      <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+    </div>
+  `);
+}
+
+function saveNewUser() {
+  let username = val("uUser");
+  let password = val("uPass");
+  let role = val("uRole");
+
+  if (!username || !password) return toast("Lengkapi data!");
+
+  // hash password (basic)
+  let passHash = btoa(password);
+
+  DataStore.addUser({
+    username,
+    password: passHash,
+    role,
+    created: today()
+  });
+
+  closeModal();
+  toast("User ditambahkan!");
+  loadUsers();
+}
+
+
+// ======================
+// EDIT USER
+// ======================
+function editUser(id) {
+  const u = DataStore.getUsers().find(x => x.id === id);
+  if (!u) return;
+
+  openModal(`
+    <h3>Edit User</h3>
+
+    <label>Username</label>
+    <input id="eUser" type="text" value="${u.username}">
+
+    <label>Password (kosongkan jika tidak ganti)</label>
+    <input id="ePass" type="password">
+
+    <label>Role</label>
+    <select id="eRole">
+      <option value="admin" ${u.role === "admin" ? "selected" : ""}>Admin</option>
+      <option value="kasir" ${u.role === "kasir" ? "selected" : ""}>Kasir</option>
+    </select>
+
+    <div style="text-align:right;margin-top:12px;">
+      <button class="btn btn-success" onclick="saveEditUser('${id}')">Simpan</button>
+      <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+    </div>
+  `);
+}
+
+function saveEditUser(id) {
+  let username = val("eUser");
+  let password = val("ePass");
+  let role = val("eRole");
+
+  const passHash = password ? btoa(password) : null;
+
+  DataStore.updateUser(id, {
+    username,
+    password: passHash,
+    role
+  });
+
+  closeModal();
+  toast("User diperbarui!");
+  loadUsers();
+}
+
+
+// ======================
+// DELETE USER
+// ======================
+function deleteUser(id) {
+  const user = DataStore.getLoginUser();
+  const users = DataStore.getUsers();
+
+  const target = users.find(u => u.id === id);
+
+  if (!target) return;
+
+  // Tidak boleh hapus diri sendiri
+  if (user.id === id) {
+    return toast("Tidak bisa menghapus user yang sedang login!");
+  }
+
+  // Minimal 1 admin harus ada
+  const adminCount = users.filter(x => x.role === "admin").length;
+
+  if (target.role === "admin" && adminCount === 1) {
+    return toast("Tidak bisa menghapus admin terakhir!");
+  }
+
+  confirmBox(
+    "Yakin hapus user ini?",
+    () => {
+      DataStore.deleteUser(id);
+      toast("User dihapus!");
+      loadUsers();
+    }
+  );
+}
+
+window.openAddUser = openAddUser;
+window.editUser = editUser;
+window.deleteUser = deleteUser;
+
+</script>
+
+</body>
+</html>

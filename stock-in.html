@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Item Masuk — Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="assets/logo.png" class="sidebar-logo">
+    <div class="app-name">Juragan Buah</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="items.html">Master Item</a>
+    <a href="buyers.html">Pembeli</a>
+    <a href="stock-in.html" class="active">Item Masuk</a>
+    <a href="stock-out.html">Item Keluar</a>
+    <a href="opname.html">Stok Opname</a>
+    <a href="sales.html">Penjualan</a>
+    <a href="report-sales.html">Laporan Penjualan</a>
+    <a href="report-stock.html">Laporan Persediaan</a>
+    <a href="report-profit.html">Laba Rugi</a>
+    <a href="users.html">User Management</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Item Masuk</h1>
+      <div id="userBox"></div>
+    </div>
+
+    <div class="container">
+
+      <div class="card" style="display:flex;gap:12px;align-items:center">
+        <input id="searchStockIn" placeholder="Cari item masuk..." style="flex:1">
+        <button class="btn" id="btnAddIn">+ Tambah Item Masuk</button>
+      </div>
+
+      <div class="card">
+        <table id="tableIn">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Harga Beli</th>
+              <th>Total</th>
+              <th style="width:120px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL + TOAST -->
+  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
+  <div id="globalToast" class="toast"></div>
+
+  <script src="utils.js"></script>
+  <script src="data.js"></script>
+
+  <script>
+  checkLogin();
+  activateSidebarLinks();
+
+  const elSearch = document.getElementById('searchStockIn');
+
+  function renderTable(){
+    const kw = elSearch.value.toLowerCase();
+    const items = DataStore.getItems();
+    const list = DataStore.getStockIn();
+    const tbody = document.querySelector('#tableIn tbody');
+    tbody.innerHTML = '';
+
+    const filtered = list.filter(r=>{
+      const item = items.find(i=>i.id===r.itemId);
+      const name = item ? item.name.toLowerCase() : '';
+      return name.includes(kw);
+    });
+
+    if(filtered.length === 0){
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666">Tidak ada data</td></tr>`;
+      return;
+    }
+
+    filtered.forEach(r=>{
+      const item = items.find(i=>i.id===r.itemId) || {name:'(terhapus)'};
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.date}</td>
+        <td>${item.name}</td>
+        <td>${r.qty}</td>
+        <td>${formatCurrency(r.price)}</td>
+        <td>${formatCurrency(r.qty * r.price)}</td>
+        <td>
+          <button class="btn" onclick="editIn('${r.id}')">Edit</button>
+          <button class="btn btn-danger" onclick="delIn('${r.id}')">Hapus</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Tambah data
+  document.getElementById('btnAddIn').onclick = () => {
+    const items = DataStore.getItems();
+    if(items.length === 0){
+      toast("Tambahkan item dulu di Master Item", "warn");
+      return;
+    }
+
+    let options = items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('');
+
+    openModal(`
+      <h3>Tambah Item Masuk</h3>
+
+      <label>Item</label>
+      <select id="in_item">${options}</select>
+
+      <label>Qty</label>
+      <input id="in_qty" type="number" min="1" value="1">
+
+      <label>Harga Beli</label>
+      <input id="in_price" type="number" min="0" value="0">
+
+      <label>Tanggal</label>
+      <input id="in_date" type="date" value="${today()}">
+
+      <div style="text-align:right;margin-top:14px">
+        <button class="btn" id="saveIn">Simpan</button>
+        <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+      </div>
+    `);
+
+    setTimeout(()=>{
+      document.getElementById('saveIn').onclick = () => {
+        const itemId = document.getElementById('in_item').value;
+        const qty = parseFloat(document.getElementById('in_qty').value);
+        const price = parseFloat(document.getElementById('in_price').value);
+        const date = document.getElementById('in_date').value;
+
+        if(!qty || qty <= 0){ toast("Qty tidak valid","warn"); return; }
+
+        DataStore.addStockIn({ itemId, qty, price, date });
+        toast("Item masuk ditambahkan");
+        closeModal();
+        renderTable();
+      };
+    },80);
+  };
+
+  // Edit data
+  function editIn(id){
+    const rec = DataStore.getStockIn().find(r=>r.id===id);
+    const items = DataStore.getItems();
+
+    let options = items.map(i=>{
+      const sel = i.id === rec.itemId ? "selected" : "";
+      return `<option value="${i.id}" ${sel}>${i.name}</option>`;
+    }).join('');
+
+    openModal(`
+      <h3>Edit Item Masuk</h3>
+
+      <input type="hidden" id="ein_id" value="${rec.id}" />
+
+      <label>Item</label>
+      <select id="ein_item">${options}</select>
+
+      <label>Qty</label>
+      <input id="ein_qty" type="number" min="1" value="${rec.qty}">
+
+      <label>Harga Beli</label>
+      <input id="ein_price" type="number" min="0" value="${rec.price}">
+
+      <label>Tanggal</label>
+      <input id="ein_date" type="date" value="${rec.date}">
+
+      <div style="text-align:right;margin-top:14px">
+        <button class="btn" id="saveEditIn">Simpan</button>
+        <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+      </div>
+    `);
+
+    setTimeout(()=>{
+      document.getElementById('saveEditIn').onclick = () => {
+        const itemId = document.getElementById('ein_item').value;
+        const qty = parseFloat(document.getElementById('ein_qty').value);
+        const price = parseFloat(document.getElementById('ein_price').value);
+        const date = document.getElementById('ein_date').value;
+
+        DataStore.updateStockIn(rec.id, { itemId, qty, price, date });
+        toast("Data diperbarui");
+        closeModal();
+        renderTable();
+      };
+    },80);
+  }
+
+  // Delete
+  function delIn(id){
+    if(!confirm("Hapus data ini?")) return;
+    DataStore.deleteStockIn(id);
+    toast("Data dihapus");
+    renderTable();
+  }
+
+  elSearch.oninput = renderTable;
+  renderTable();
+
+  window.editIn = editIn;
+  window.delIn = delIn;
+  </script>
+
+</body>
+</html>

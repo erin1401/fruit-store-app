@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Juragan Buah</title>
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="logo-area">
+            <img src="assets/logo.png" class="logo">
+            <h3>Juragan Buah</h3>
+        </div>
+
+        <ul class="menu">
+            <li><a class="active" href="dashboard.html">📊 Dashboard</a></li>
+
+            <li class="section">Master</li>
+            <li><a href="items.html">🍎 Item Barang</a></li>
+            <li><a href="buyers.html">👥 Pembeli</a></li>
+
+            <li class="section">Persediaan</li>
+            <li><a href="stock-in.html">📥 Item Masuk</a></li>
+            <li><a href="stock-out.html">📤 Item Keluar</a></li>
+            <li><a href="opname.html">📋 Stok Opname</a></li>
+
+            <li class="section">Transaksi</li>
+            <li><a href="sales.html">💰 Penjualan</a></li>
+
+            <li class="section">Laporan</li>
+            <li><a href="report-sales.html">📑 Laporan Penjualan</a></li>
+            <li><a href="report-stock.html">📦 Laporan Persediaan</a></li>
+            <li><a href="report-profit.html">💹 Laba Rugi</a></li>
+
+            <li class="section">Pengguna</li>
+            <li><a href="users.html">👤 User Management</a></li>
+
+            <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <h1>Dashboard</h1>
+        <p>Selamat datang di sistem POS <strong>Juragan Buah</strong>.</p>
+
+        <!-- 3 KPI -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h2 id="kpiSales">Rp 0</h2>
+                <p>Total Penjualan Hari Ini</p>
+            </div>
+
+            <div class="kpi-card">
+                <h2 id="kpiItems">0</h2>
+                <p>Total Item</p>
+            </div>
+
+            <div class="kpi-card">
+                <h2 id="kpiBuyers">0</h2>
+                <p>Total Pembeli</p>
+            </div>
+        </div>
+
+        <!-- Grafik Penjualan -->
+        <div class="card">
+            <h3>Grafik Penjualan Bulanan</h3>
+            <canvas id="salesChart" height="120"></canvas>
+        </div>
+    </main>
+
+</div>
+
+<!-- SCRIPT -->
+<script src="utils.js"></script>
+<script src="data.js"></script>
+
+<script>
+checkLogin();
+
+// AMBIL DATA
+const buyers = getBuyers();
+const items = getItems();
+const sales = getSales();
+
+// KPI COUNT
+document.getElementById("kpiItems").innerText = items.length;
+document.getElementById("kpiBuyers").innerText = buyers.length;
+
+// KPI PENJUALAN HARI INI
+const today = new Date().toISOString().substring(0,10);
+let totalToday = 0;
+
+sales.forEach(s => {
+    if (s.date === today) totalToday += s.total;
+});
+
+document.getElementById("kpiSales").innerText =
+    "Rp " + totalToday.toLocaleString("id-ID");
+
+// --- GRAFIK BULANAN ---
+const monthlyData = {};
+sales.forEach(s => {
+    const d = new Date(s.date);
+    const month = d.toLocaleString("id-ID", { month: "long" });
+
+    if (!monthlyData[month]) monthlyData[month] = 0;
+    monthlyData[month] += s.total;
+});
+
+const labels = Object.keys(monthlyData);
+const values = Object.values(monthlyData);
+
+// RENDER GRAFIK
+new Chart(document.getElementById("salesChart"), {
+    type: "bar",
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Penjualan (Rp)",
+            data: values,
+            backgroundColor: "#4CAF50",
+            borderColor: "#2E7D32",
+            borderWidth: 2,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: v => "Rp " + v.toLocaleString("id-ID")
+                }
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
