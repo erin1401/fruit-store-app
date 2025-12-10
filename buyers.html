@@ -1,9 +1,16 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pembeli — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pembeli — Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
 <body>
+
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <img src="assets/logo.svg" alt="Juragan Buah" style="width:100px;display:block;margin:6px auto">
+    <img src="assets/logo.png" alt="Juragan Buah" style="width:100px;display:block;margin:6px auto">
     <div class="app-name">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
@@ -18,81 +25,182 @@
     <a href="users.html">User Management</a>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <h1>Pembeli</h1>
+      <h1 style="margin:0">Pembeli</h1>
       <div id="userBox"></div>
     </div>
 
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <input id="searchBuyers" placeholder="Cari pembeli..." style="max-width:420px">
-        <button class="btn" id="btnAddBuyer">+ Tambah</button>
+    <div class="container">
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div style="flex:1">
+          <input id="searchBuyers" placeholder="Cari pembeli... (nama / hp)" />
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="btnExport">Export CSV</button>
+          <button class="btn" id="btnAddBuyer">+ Tambah Pembeli</button>
+        </div>
       </div>
 
-      <table id="buyersTable" style="margin-top:12px"><thead><tr><th>Nama</th><th>HP</th><th>Alamat</th><th>Aksi</th></tr></thead><tbody></tbody></table>
+      <div class="card">
+        <table id="buyersTable" style="width:100%">
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>HP</th>
+              <th>Alamat</th>
+              <th style="width:150px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
+  <!-- GLOBAL MODAL & TOAST -->
   <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
   <div id="globalToast" class="toast"></div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
+
   <script>
-    checkLogin(); activateSidebarLinks();
+  // proteksi halaman & aktifkan sidebar
+  checkLogin();
+  activateSidebarLinks();
 
-    function renderBuyers(){
-      const list = DataStore.getBuyers();
-      const kw = (document.getElementById('searchBuyers').value||'').toLowerCase();
-      const tbody = document.querySelector('#buyersTable tbody'); tbody.innerHTML='';
-      list.filter(b => (b.name||'').toLowerCase().includes(kw) || (b.phone||'').toLowerCase().includes(kw)).forEach(b=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${b.name}</td><td>${b.phone||'-'}</td><td>${b.address||'-'}</td><td><button class="btn" onclick="editBuyer('${b.id}')">Edit</button> <button class="btn btn-danger" onclick="deleteBuyer('${b.id}')">Hapus</button></td>`;
-        tbody.appendChild(tr);
-      });
-    }
+  // helpers
+  function renderBuyers() {
+    const list = DataStore.getBuyers();
+    const kw = (document.getElementById('searchBuyers').value || '').toLowerCase();
+    const tbody = document.querySelector('#buyersTable tbody');
+    tbody.innerHTML = '';
 
-    document.getElementById('btnAddBuyer').addEventListener('click', ()=>{
-      openModal(`<h3>Tambah Pembeli</h3>
-        <label>Nama</label><input id="b_name">
-        <label>No HP</label><input id="b_phone">
-        <label>Alamat</label><input id="b_address">
-        <div style="text-align:right;margin-top:12px"><button class="btn" id="saveBuyer">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
-      setTimeout(()=> {
-        document.getElementById('saveBuyer').onclick = ()=>{
-          const name = document.getElementById('b_name').value.trim();
-          const phone = document.getElementById('b_phone').value.trim();
-          const address = document.getElementById('b_address').value.trim();
-          if(!name){ toast('Nama wajib','warn'); return; }
-          DataStore.addBuyer({ name, phone, address });
-          toast('Pembeli ditambahkan');
-          closeModal(); renderBuyers();
-        };
-      },60);
+    const filtered = list.filter(b => {
+      const name = (b.name || '').toLowerCase();
+      const phone = (b.phone || '').toLowerCase();
+      return name.includes(kw) || phone.includes(kw);
     });
 
-    function editBuyer(id){
-      const b = DataStore.getBuyers().find(x=>x.id===id);
-      openModal(`<h3>Edit Pembeli</h3><input type="hidden" id="eb_id" value="${b.id}"><label>Nama</label><input id="eb_name" value="${b.name||''}"><label>No HP</label><input id="eb_phone" value="${b.phone||''}"><label>Alamat</label><input id="eb_address" value="${b.address||''}"><div style="text-align:right;margin-top:12px"><button class="btn" id="saveEditBuyer">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
-      setTimeout(()=> {
-        document.getElementById('saveEditBuyer').onclick = ()=>{
-          DataStore.updateBuyer(document.getElementById('eb_id').value, { name: document.getElementById('eb_name').value.trim(), phone: document.getElementById('eb_phone').value.trim(), address: document.getElementById('eb_address').value.trim() });
-          toast('Pembeli diperbarui');
-          closeModal(); renderBuyers();
-        };
-      },60);
+    if (filtered.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="4" style="text-align:center;color:#666">Tidak ada data pembeli</td>`;
+      tbody.appendChild(tr);
+      return;
     }
 
-    function deleteBuyer(id){
-      if(!confirm('Hapus pembeli?')) return;
-      DataStore.deleteBuyer(id);
-      toast('Pembeli dihapus');
-      renderBuyers();
-    }
+    filtered.forEach(b => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHTML(b.name || '-')}</td>
+        <td>${escapeHTML(b.phone || '-')}</td>
+        <td>${escapeHTML(b.address || '-')}</td>
+        <td>
+          <button class="btn" onclick="openEditBuyer('${b.id}')">Edit</button>
+          <button class="btn btn-danger" onclick="removeBuyer('${b.id}')">Hapus</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
-    document.getElementById('searchBuyers').addEventListener('input', renderBuyers);
+  // small escape helper to avoid accidental HTML injection when pasting data
+  function escapeHTML(str){
+    if(!str) return '';
+    return String(str).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+  }
+
+  // add buyer
+  document.getElementById('btnAddBuyer').addEventListener('click', () => {
+    openModal(`
+      <h3>Tambah Pembeli</h3>
+      <label>Nama</label><input id="b_name" placeholder="Nama pembeli">
+      <label>No HP</label><input id="b_phone" placeholder="0812...">
+      <label>Alamat</label><input id="b_address" placeholder="Alamat (opsional)">
+      <div style="text-align:right;margin-top:12px">
+        <button class="btn" id="saveBuyerBtn">Simpan</button>
+        <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+      </div>
+    `);
+
+    setTimeout(()=>{
+      document.getElementById('saveBuyerBtn').onclick = () => {
+        const name = (document.getElementById('b_name').value || '').trim();
+        const phone = (document.getElementById('b_phone').value || '').trim();
+        const address = (document.getElementById('b_address').value || '').trim();
+
+        if(!name){ toast('Nama pembeli wajib', 'warn'); return; }
+
+        DataStore.addBuyer({ name, phone, address });
+        toast('Pembeli ditambahkan');
+        closeModal();
+        renderBuyers();
+      };
+    }, 80);
+  });
+
+  // edit buyer
+  function openEditBuyer(id){
+    const b = DataStore.getBuyers().find(x => x.id === id);
+    if(!b){ toast('Pembeli tidak ditemukan','error'); return; }
+
+    openModal(`
+      <h3>Edit Pembeli</h3>
+      <input type="hidden" id="eb_id" value="${b.id}">
+      <label>Nama</label><input id="eb_name" value="${escapeHTML(b.name||'')}">
+      <label>No HP</label><input id="eb_phone" value="${escapeHTML(b.phone||'')}">
+      <label>Alamat</label><input id="eb_address" value="${escapeHTML(b.address||'')}">
+      <div style="text-align:right;margin-top:12px">
+        <button class="btn" id="saveEditBuyerBtn">Simpan</button>
+        <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+      </div>
+    `);
+
+    setTimeout(()=>{
+      document.getElementById('saveEditBuyerBtn').onclick = () => {
+        const id = document.getElementById('eb_id').value;
+        const name = (document.getElementById('eb_name').value || '').trim();
+        const phone = (document.getElementById('eb_phone').value || '').trim();
+        const address = (document.getElementById('eb_address').value || '').trim();
+
+        if(!name){ toast('Nama wajib','warn'); return; }
+
+        DataStore.updateBuyer(id, { name, phone, address });
+        toast('Pembeli diperbarui');
+        closeModal();
+        renderBuyers();
+      };
+    }, 80);
+  }
+
+  // remove buyer
+  function removeBuyer(id){
+    if(!confirm('Hapus pembeli ini?')) return;
+    DataStore.deleteBuyer(id);
+    toast('Pembeli dihapus');
     renderBuyers();
+  }
+
+  // export CSV
+  document.getElementById('btnExport').addEventListener('click', ()=>{
+    const rows = [['Nama','HP','Alamat']];
+    DataStore.getBuyers().forEach(b => rows.push([b.name||'', b.phone||'', b.address||'']));
+    exportCSV('buyers.csv', rows);
+    toast('Export CSV selesai');
+  });
+
+  // search handler
+  document.getElementById('searchBuyers').addEventListener('input', renderBuyers);
+
+  // initial render
+  renderBuyers();
+
+  // expose edit/remove to global scope so buttons can call them
+  window.openEditBuyer = openEditBuyer;
+  window.removeBuyer = removeBuyer;
+
   </script>
 </body>
 </html>

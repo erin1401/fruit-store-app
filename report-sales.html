@@ -1,10 +1,19 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laporan Penjualan — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laporan Penjualan — Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
 <body>
+
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <img src="assets/logo.svg" style="width:100px;display:block;margin:6px auto">
+    <img src="assets/logo.png" class="sidebar-logo">
     <div class="app-name">Juragan Buah</div>
+
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
@@ -18,52 +27,162 @@
     <a href="users.html">User Management</a>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
-    <div class="topbar"><h1>Laporan Penjualan</h1><div id="userBox"></div></div>
-
-    <div class="card" style="display:flex;gap:12px;align-items:flex-end">
-      <div><label>Dari</label><input type="date" id="fromDate"></div>
-      <div><label>Sampai</label><input type="date" id="toDate"></div>
-      <div style="margin-left:auto"><button class="btn" id="btnExportSales">Export CSV</button></div>
+    <div class="topbar">
+      <h1>Laporan Penjualan</h1>
+      <div id="userBox"></div>
     </div>
 
-    <div class="card" style="margin-top:12px">
-      <table id="rSalesTable"><thead><tr><th>Invoice</th><th>Tanggal</th><th>Pembeli</th><th>Total</th><th>Detail</th></tr></thead><tbody></tbody></table>
+    <div class="container">
+
+      <!-- FILTER -->
+      <div class="card">
+        <h3>Filter Tanggal</h3>
+
+        <div class="grid-2">
+          <div>
+            <label>Dari</label>
+            <input type="date" id="dateFrom" value="">
+          </div>
+
+          <div>
+            <label>Sampai</label>
+            <input type="date" id="dateTo" value="">
+          </div>
+        </div>
+
+        <button class="btn" style="margin-top:10px;" id="btnFilter">Terapkan</button>
+      </div>
+
+      <!-- RESULT -->
+      <div class="card">
+        <h3>Rekap</h3>
+
+        <p>Total Transaksi: <strong id="sumTrans">0</strong></p>
+        <p>Total Penjualan: <strong>Rp <span id="sumAmount">0</span></strong></p>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card">
+        <h3>Detail Penjualan</h3>
+        <table id="tblSales">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Metode</th>
+              <th>Total</th>
+              <th>Bayar</th>
+              <th>Kembalian</th>
+              <th style="width:120px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
-  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
+  <!-- MODAL -->
+  <div id="globalModal" class="modal-bg">
+    <div id="globalModalBox" class="modal-box"></div>
+  </div>
+
+  <!-- TOAST -->
   <div id="globalToast" class="toast"></div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
-  <script>
-    checkLogin(); activateSidebarLinks();
 
-    function renderReportSales(){
-      const from = document.getElementById('fromDate').value;
-      const to = document.getElementById('toDate').value;
-      let sales = DataStore.getSales();
-      if(from) sales = sales.filter(s => s.date >= from);
-      if(to) sales = sales.filter(s => s.date <= to);
-      const tbody = document.querySelector('#rSalesTable tbody'); tbody.innerHTML='';
-      sales.forEach(s => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${s.id}</td><td>${formatTanggal(s.date)}</td><td>${s.buyerName||'-'}</td><td>${formatRupiah(s.total)}</td><td><button class="btn" onclick="openSaleDetail('${s.id}')">Detail</button></td>`;
-        tbody.appendChild(tr);
-      });
-    }
+<script>
 
-    function openSaleDetail(id){
-      const s = DataStore.getSales().find(x=>x.id===id);
-      openModal(`<h3>Detail Transaksi</h3><div>Invoice: ${s.id}</div><div>Tanggal: ${formatTanggal(s.date)}</div><table style="width:100%"><thead><tr><th>Nama</th><th>Qty</th><th>Harga</th></tr></thead><tbody>${s.items.map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>${formatRupiah(i.price)}</td></tr>`).join('')}</tbody></table><div style="text-align:right;margin-top:10px"><button class="btn" onclick="closeModal()">Tutup</button></div>`);
-    }
+checkLogin();
+activateSidebarLinks();
 
-    document.getElementById('fromDate').addEventListener('change', renderReportSales);
-    document.getElementById('toDate').addEventListener('change', renderReportSales);
-    document.getElementById('btnExportSales').addEventListener('click', ()=>{ const rows = DataStore.exportSalesCSVRows(); exportCSV('sales.csv', rows); toast('Export CSV selesai'); });
+document.getElementById("dateFrom").value = today();
+document.getElementById("dateTo").value = today();
 
-    renderReportSales();
-  </script>
+document.getElementById("btnFilter").onclick = loadData;
+
+function loadData() {
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  const list = DataStore.getSales().filter(s => s.date >= from && s.date <= to);
+  const tbody = document.querySelector("#tblSales tbody");
+
+  tbody.innerHTML = "";
+  let total = 0;
+
+  list.forEach(s => {
+    const kembali = s.payAmount - s.total;
+    total += s.total;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.date}</td>
+      <td>${s.method.toUpperCase()}</td>
+      <td>Rp ${nf(s.total)}</td>
+      <td>Rp ${nf(s.payAmount)}</td>
+      <td>Rp ${nf(kembali)}</td>
+      <td>
+        <button class="btn" onclick="detailSale('${s.id}')">Detail</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("sumTrans").innerText = list.length;
+  document.getElementById("sumAmount").innerText = nf(total);
+}
+
+function detailSale(id) {
+  const sale = DataStore.getSales().find(x => x.id === id);
+  const items = DataStore.getItems();
+
+  let rows = sale.items.map(it => {
+    let item = items.find(i => i.id === it.id);
+    return `
+      <tr>
+        <td>${item.name}</td>
+        <td>${it.qty}</td>
+        <td>Rp ${nf(item.price)}</td>
+        <td>Rp ${nf(it.qty * item.price)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  openModal(`
+    <h3>Detail Transaksi</h3>
+    <p>Tanggal: ${sale.date}</p>
+    <p>Metode: ${sale.method.toUpperCase()}</p>
+
+    <table style="width:100%;border-collapse:collapse;margin-top:10px;">
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Harga</th>
+        <th>Subtotal</th>
+      </tr>
+      ${rows}
+    </table>
+
+    <h3>Total: Rp ${nf(sale.total)}</h3>
+    <h3>Bayar: Rp ${nf(sale.payAmount)}</h3>
+    <h3>Kembalian: Rp ${nf(sale.payAmount - sale.total)}</h3>
+
+    <div style="text-align:right;margin-top:12px;">
+      <button class="btn btn-danger" onclick="closeModal()">Tutup</button>
+    </div>
+  `);
+}
+
+loadData();
+
+window.detailSale = detailSale;
+
+</script>
+
 </body>
 </html>

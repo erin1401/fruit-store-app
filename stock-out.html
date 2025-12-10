@@ -1,9 +1,16 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Barang Keluar — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Item Keluar — Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
 <body>
+
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <img src="assets/logo.svg" style="width:100px;display:block;margin:6px auto">
+    <img src="assets/logo.png" class="sidebar-logo">
     <div class="app-name">Juragan Buah</div>
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
@@ -18,58 +25,206 @@
     <a href="users.html">User Management</a>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
-    <div class="topbar"><h1>Item Keluar</h1><div id="userBox"></div></div>
+    <div class="topbar">
+      <h1>Item Keluar</h1>
+      <div id="userBox"></div>
+    </div>
 
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <input id="searchStockOut" placeholder="Cari barang..." style="max-width:420px">
-        <button class="btn" id="btnStockOut">+ Catat Keluar</button>
+    <div class="container">
+
+      <div class="card" style="display:flex; gap:12px; align-items:center">
+        <input id="searchOut" placeholder="Cari item keluar..." style="flex:1;">
+        <button class="btn" id="btnAddOut">+ Tambah Item Keluar</button>
       </div>
 
-      <table id="stockOutTable" style="margin-top:12px"><thead><tr><th>Tanggal</th><th>Item</th><th>Qty</th><th>Alasan</th></tr></thead><tbody></tbody></table>
+      <div class="card">
+        <table id="tableOut">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Keterangan</th>
+              <th style="width:140px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
-  <div id="globalModal" class="modal-bg"><div id="globalModalBox" class="modal-box"></div></div>
+  <!-- GLOBAL MODAL -->
+  <div id="globalModal" class="modal-bg">
+    <div id="globalModalBox" class="modal-box"></div>
+  </div>
+
+  <!-- TOAST -->
   <div id="globalToast" class="toast"></div>
 
   <script src="utils.js"></script>
   <script src="data.js"></script>
+
   <script>
-    checkLogin(); activateSidebarLinks();
+  checkLogin();
+  activateSidebarLinks();
 
-    function renderStockOut(){
-      const rows = DataStore.getStockOut().slice().reverse();
-      const items = DataStore.getItems();
-      const kw = (document.getElementById('searchStockOut').value||'').toLowerCase();
-      const tbody = document.querySelector('#stockOutTable tbody'); tbody.innerHTML='';
-      rows.filter(r => (items.find(i=>i.id===r.itemId)?.name||'').toLowerCase().includes(kw)).forEach(r=>{
-        const item = items.find(i=>i.id===r.itemId);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${formatTanggal(r.date)}</td><td>${item?.name||'-'}</td><td>${r.qty}</td><td>${r.reason||''}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
+  const fieldSearch = document.getElementById("searchOut");
 
-    document.getElementById('btnStockOut').addEventListener('click', ()=>{
-      const items = DataStore.getItems();
-      openModal(`<h3>Catat Barang Keluar</h3><label>Pilih Item</label><select id="so_item">${items.map(i=>`<option value="${i.id}">${i.name} (Stok:${i.stock})</option>`).join('')}</select><label>Qty</label><input id="so_qty" type="number" value="1"><label>Alasan</label><input id="so_reason" type="text" placeholder="Rusak/Retur/Pemakaian"><div style="text-align:right;margin-top:12px"><button class="btn" id="saveStockOut">Simpan</button> <button class="btn btn-danger" onclick="closeModal()">Batal</button></div>`);
-      setTimeout(()=> {
-        document.getElementById('saveStockOut').onclick = ()=>{
-          const itemId = document.getElementById('so_item').value;
-          const qty = Number(document.getElementById('so_qty').value)||0;
-          const reason = document.getElementById('so_reason').value.trim();
-          if(qty<=0){ toast('Qty harus > 0','warn'); return; }
-          DataStore.recordStockOut({ itemId, qty, reason });
-          toast('Barang keluar dicatat');
-          closeModal(); renderStockOut();
-        };
-      },60);
+  function renderOut() {
+    const kw = fieldSearch.value.toLowerCase();
+    const items = DataStore.getItems();
+    const list = DataStore.getStockOut();
+    const tbody = document.querySelector("#tableOut tbody");
+
+    tbody.innerHTML = "";
+
+    const filtered = list.filter(r => {
+      const item = items.find(i => i.id === r.itemId);
+      return item && item.name.toLowerCase().includes(kw);
     });
 
-    document.getElementById('searchStockOut').addEventListener('input', renderStockOut);
-    renderStockOut();
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#777;">Tidak ada data</td></tr>`;
+      return;
+    }
+
+    filtered.forEach(r => {
+      const item = items.find(i => i.id === r.itemId) || { name: "(item dihapus)" };
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.date}</td>
+        <td>${item.name}</td>
+        <td>${r.qty}</td>
+        <td>${r.note || "-"}</td>
+        <td>
+          <button class="btn" onclick="editOut('${r.id}')">Edit</button>
+          <button class="btn btn-danger" onclick="delOut('${r.id}')">Hapus</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ADD DATA
+  document.getElementById("btnAddOut").onclick = () => {
+    const items = DataStore.getItems();
+    if (items.length === 0) {
+      toast("Data item kosong. Isi Master Item dulu", "warn");
+      return;
+    }
+
+    let opts = items.map(i => `<option value="${i.id}">${i.name}</option>`).join("");
+
+    openModal(`
+      <h3>Tambah Item Keluar</h3>
+
+      <label>Item</label>
+      <select id="out_item">${opts}</select>
+
+      <label>Qty</label>
+      <input id="out_qty" type="number" value="1" min="1">
+
+      <label>Keterangan</label>
+      <input id="out_note" placeholder="Contoh: rusak, sampel, dll">
+
+      <label>Tanggal</label>
+      <input id="out_date" type="date" value="${today()}">
+
+      <div style="text-align:right;margin-top:12px;">
+        <button class="btn" id="saveOut">Simpan</button>
+        <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+      </div>
+    `);
+
+    setTimeout(() => {
+      document.getElementById("saveOut").onclick = () => {
+        const itemId = document.getElementById("out_item").value;
+        const qty = parseFloat(document.getElementById("out_qty").value);
+        const note = document.getElementById("out_note").value;
+        const date = document.getElementById("out_date").value;
+
+        if (!qty || qty <= 0) {
+          toast("Qty tidak valid", "warn");
+          return;
+        }
+
+        DataStore.addStockOut({ itemId, qty, note, date });
+        toast("Item keluar ditambahkan");
+        closeModal();
+        renderOut();
+      };
+    }, 80);
+  };
+
+  // EDIT
+  function editOut(id) {
+    const rec = DataStore.getStockOut().find(r => r.id === id);
+    const items = DataStore.getItems();
+
+    let opts = items
+      .map(i => `<option value="${i.id}" ${i.id === rec.itemId ? "selected" : ""}>${i.name}</option>`)
+      .join("");
+
+    openModal(`
+      <h3>Edit Item Keluar</h3>
+      <input id="eo_id" type="hidden" value="${rec.id}">
+
+      <label>Item</label>
+      <select id="eo_item">${opts}</select>
+
+      <label>Qty</label>
+      <input id="eo_qty" type="number" value="${rec.qty}">
+
+      <label>Keterangan</label>
+      <input id="eo_note" value="${rec.note || ""}">
+
+      <label>Tanggal</label>
+      <input id="eo_date" type="date" value="${rec.date}">
+
+      <div style="text-align:right;margin-top:12px;">
+        <button class="btn" id="saveEditOut">Simpan</button>
+        <button class="btn btn-danger" onclick="closeModal()">Batal</button>
+      </div>
+    `);
+
+    setTimeout(() => {
+      document.getElementById("saveEditOut").onclick = () => {
+        const itemId = document.getElementById("eo_item").value;
+        const qty = parseFloat(document.getElementById("eo_qty").value);
+        const note = document.getElementById("eo_note").value;
+        const date = document.getElementById("eo_date").value;
+
+        DataStore.updateStockOut(rec.id, { itemId, qty, note, date });
+
+        toast("Data diperbarui");
+        closeModal();
+        renderOut();
+      };
+    }, 80);
+  }
+
+  // DELETE
+  function delOut(id) {
+    if (!confirm("Hapus data ini?")) return;
+    DataStore.deleteStockOut(id);
+    toast("Item keluar dihapus");
+    renderOut();
+  }
+
+  // SEARCH
+  fieldSearch.oninput = renderOut;
+
+  // INITIAL
+  renderOut();
+
+  window.editOut = editOut;
+  window.delOut = delOut;
   </script>
+
 </body>
 </html>

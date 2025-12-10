@@ -1,10 +1,19 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laporan Persediaan — Juragan Buah</title><link rel="stylesheet" href="styles.css"></head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laporan Persediaan — Juragan Buah</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
 <body>
+
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <img src="assets/logo.svg" style="width:100px;display:block;margin:6px auto">
+    <img src="assets/logo.png" class="sidebar-logo">
     <div class="app-name">Juragan Buah</div>
+
     <a href="dashboard.html">Dashboard</a>
     <a href="items.html">Master Item</a>
     <a href="buyers.html">Pembeli</a>
@@ -18,43 +27,129 @@
     <a href="users.html">User Management</a>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
-    <div class="topbar"><h1>Laporan Persediaan</h1><div id="userBox"></div></div>
+    <div class="topbar">
+      <h1>Laporan Persediaan</h1>
+      <div id="userBox"></div>
+    </div>
 
-    <div class="card">
-      <input id="searchStock" placeholder="Cari barang..." style="max-width:420px">
-      <table id="rStockTable" style="margin-top:12px"><thead><tr><th>Nama</th><th>Stok Awal</th><th>Masuk</th><th>Keluar</th><th>Penjualan</th><th>Penyesuaian</th><th>Stok Akhir</th></tr></thead><tbody></tbody></table>
+    <div class="container">
+
+      <!-- FILTER -->
+      <div class="card">
+        <h3>Filter Tanggal</h3>
+
+        <div class="grid-2">
+          <div>
+            <label>Dari</label>
+            <input type="date" id="dateFrom" value="">
+          </div>
+
+          <div>
+            <label>Sampai</label>
+            <input type="date" id="dateTo" value="">
+          </div>
+        </div>
+
+        <button class="btn" id="btnFilter" style="margin-top:12px;">Terapkan</button>
+      </div>
+
+      <!-- RESULT TABLE -->
+      <div class="card">
+        <h3>Ringkasan Persediaan</h3>
+
+        <table id="tblStock">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Stok Awal</th>
+              <th>Masuk</th>
+              <th>Keluar</th>
+              <th>Opname</th>
+              <th>Stok Akhir</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
+  <!-- MODAL -->
+  <div id="globalModal" class="modal-bg">
+    <div id="globalModalBox" class="modal-box"></div>
+  </div>
+
+  <!-- TOAST -->
   <div id="globalToast" class="toast"></div>
+
   <script src="utils.js"></script>
   <script src="data.js"></script>
-  <script>
-    checkLogin(); activateSidebarLinks();
 
-    function renderStockReport(){
-      const items = DataStore.getItems();
-      const stockIn = DataStore.getStockIn();
-      const stockOut = DataStore.getStockOut();
-      const sales = DataStore.getSales();
-      const opname = DataStore.getStockOpname();
-      const kw = (document.getElementById('searchStock').value||'').toLowerCase();
-      const tbody = document.querySelector('#rStockTable tbody'); tbody.innerHTML='';
-      items.filter(i=>i.name.toLowerCase().includes(kw)).forEach(i=>{
-        const masuk = stockIn.filter(s=>s.itemId===i.id).reduce((a,b)=>a+b.qty,0);
-        const keluar = stockOut.filter(s=>s.itemId===i.id).reduce((a,b)=>a+b.qty,0);
-        const jual = sales.flatMap(s=>s.items).filter(it=>it.itemId===i.id).reduce((a,b)=>a+b.qty,0);
-        const penyesuaian = opname.filter(o=>o.itemId===i.id).reduce((a,b)=>a+(b.diff||0),0);
-        const stokAwal = i.stock - masuk + keluar + jual - penyesuaian;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${i.name}</td><td>${stokAwal}</td><td>${masuk}</td><td>${keluar}</td><td>${jual}</td><td>${penyesuaian}</td><td><b>${i.stock}</b></td>`;
-        tbody.appendChild(tr);
-      });
-    }
+<script>
 
-    document.getElementById('searchStock').addEventListener('input', renderStockReport);
-    renderStockReport();
-  </script>
+checkLogin();
+activateSidebarLinks();
+
+// Set default tanggal
+document.getElementById("dateFrom").value = today();
+document.getElementById("dateTo").value = today();
+
+document.getElementById("btnFilter").onclick = loadStock;
+
+function loadStock() {
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  const items = DataStore.getItems();
+  const stockIn = DataStore.getStockIn();
+  const stockOut = DataStore.getStockOut();
+  const opname = DataStore.getOpname();
+
+  const tbody = document.querySelector("#tblStock tbody");
+  tbody.innerHTML = "";
+
+  items.forEach(item => {
+
+    // MASUK (periode)
+    const masuk = stockIn
+      .filter(r => r.itemId === item.id && r.date >= from && r.date <= to)
+      .reduce((a, b) => a + b.qty, 0);
+
+    // KELUAR (periode)
+    const keluar = stockOut
+      .filter(r => r.itemId === item.id && r.date >= from && r.date <= to)
+      .reduce((a, b) => a + b.qty, 0);
+
+    // OPNAME (periode)
+    const op = opname
+      .filter(r => r.itemId === item.id && r.date >= from && r.date <= to)
+      .sort((a, b) => b.date.localeCompare(a.date))[0];
+
+    // STOK REAL-TIME
+    const stokAkhir = DataStore.getStock(item.id);
+
+    // STOK AWAL = stok akhir - masuk + keluar
+    const stokAwal = stokAkhir - masuk + keluar;
+
+    let tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.name}</td>
+      <td>${stokAwal}</td>
+      <td>${masuk}</td>
+      <td>${keluar}</td>
+      <td>${op ? op.qty : '-'}</td>
+      <td>${stokAkhir}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+loadStock();
+
+</script>
+
 </body>
 </html>

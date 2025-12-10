@@ -1,73 +1,151 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dashboard — Juragan Buah</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Juragan Buah</title>
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-  <!-- sidebar -->
-  <div class="sidebar">
-    <img src="assets/logo.svg" alt="Juragan Buah" style="width:100px;display:block;margin:6px auto">
-    <div class="app-name">Juragan Buah</div>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="items.html">Master Item</a>
-    <a href="buyers.html">Pembeli</a>
-    <a href="stock-in.html">Item Masuk</a>
-    <a href="stock-out.html">Item Keluar</a>
-    <a href="opname.html">Stok Opname</a>
-    <a href="sales.html">Penjualan</a>
-    <a href="report-sales.html">Laporan Penjualan</a>
-    <a href="report-stock.html">Laporan Persediaan</a>
-    <a href="report-profit.html">Laba Rugi</a>
-    <a href="users.html">User Management</a>
-    <a href="#" onclick="logout()">Logout</a>
-  </div>
+<div class="layout">
 
-  <div class="main">
-    <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px">
-        <img src="assets/logo.svg" style="width:36px">
-        <div>
-          <h1 style="margin:0">Dashboard</h1>
-          <small id="page-sub">Ringkasan</small>
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="logo-area">
+            <img src="assets/logo.png" class="logo">
+            <h3>Juragan Buah</h3>
         </div>
-      </div>
-      <div id="userBox"></div>
-    </div>
 
-    <div class="container">
-      <div class="card grid-4" id="kpis">
-        <div><h4>Total Penjualan</h4><div id="k_total">Rp 0</div></div>
-        <div><h4>Transaksi</h4><div id="k_count">0</div></div>
-        <div><h4>Total Item</h4><div id="k_items">0</div></div>
-        <div><h4>Stok Rendah</h4><div id="k_low">0</div></div>
-      </div>
+        <ul class="menu">
+            <li><a class="active" href="dashboard.html">📊 Dashboard</a></li>
 
-      <div class="card" style="margin-top:14px">
-        <h3>Ringkasan Penjualan (7 hari)</h3>
-        <div id="chartArea">[grafik placeholder]</div>
-      </div>
-    </div>
-  </div>
+            <li class="section">Master</li>
+            <li><a href="items.html">🍎 Item Barang</a></li>
+            <li><a href="buyers.html">👥 Pembeli</a></li>
 
-  <div id="globalToast" class="toast"></div>
+            <li class="section">Persediaan</li>
+            <li><a href="stock-in.html">📥 Item Masuk</a></li>
+            <li><a href="stock-out.html">📤 Item Keluar</a></li>
+            <li><a href="opname.html">📋 Stok Opname</a></li>
 
-  <script src="utils.js"></script>
-  <script src="data.js"></script>
-  <script>
-    // auth + sidebar links
-    checkLogin();
-    activateSidebarLinks();
+            <li class="section">Transaksi</li>
+            <li><a href="sales.html">💰 Penjualan</a></li>
 
-    const items = DataStore.getItems();
-    document.getElementById('k_items').innerText = items.length;
-    const sales = DataStore.getSales();
-    const total = sales.reduce((s,x)=>s + Number(x.total||0),0);
-    document.getElementById('k_total').innerText = formatRupiah(total);
-    document.getElementById('k_count').innerText = sales.length;
-    document.getElementById('k_low').innerText = items.filter(i=>Number(i.stock)<=5).length;
-  </script>
+            <li class="section">Laporan</li>
+            <li><a href="report-sales.html">📑 Laporan Penjualan</a></li>
+            <li><a href="report-stock.html">📦 Laporan Persediaan</a></li>
+            <li><a href="report-profit.html">💹 Laba Rugi</a></li>
+
+            <li class="section">Pengguna</li>
+            <li><a href="users.html">👤 User Management</a></li>
+
+            <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <h1>Dashboard</h1>
+        <p>Selamat datang di sistem POS <strong>Juragan Buah</strong>.</p>
+
+        <!-- 3 KPI -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h2 id="kpiSales">Rp 0</h2>
+                <p>Total Penjualan Hari Ini</p>
+            </div>
+
+            <div class="kpi-card">
+                <h2 id="kpiItems">0</h2>
+                <p>Total Item</p>
+            </div>
+
+            <div class="kpi-card">
+                <h2 id="kpiBuyers">0</h2>
+                <p>Total Pembeli</p>
+            </div>
+        </div>
+
+        <!-- Grafik Penjualan -->
+        <div class="card">
+            <h3>Grafik Penjualan Bulanan</h3>
+            <canvas id="salesChart" height="120"></canvas>
+        </div>
+    </main>
+
+</div>
+
+<!-- SCRIPT -->
+<script src="utils.js"></script>
+<script src="data.js"></script>
+
+<script>
+checkLogin();
+
+// AMBIL DATA
+const buyers = getBuyers();
+const items = getItems();
+const sales = getSales();
+
+// KPI COUNT
+document.getElementById("kpiItems").innerText = items.length;
+document.getElementById("kpiBuyers").innerText = buyers.length;
+
+// KPI PENJUALAN HARI INI
+const today = new Date().toISOString().substring(0,10);
+let totalToday = 0;
+
+sales.forEach(s => {
+    if (s.date === today) totalToday += s.total;
+});
+
+document.getElementById("kpiSales").innerText =
+    "Rp " + totalToday.toLocaleString("id-ID");
+
+// --- GRAFIK BULANAN ---
+const monthlyData = {};
+sales.forEach(s => {
+    const d = new Date(s.date);
+    const month = d.toLocaleString("id-ID", { month: "long" });
+
+    if (!monthlyData[month]) monthlyData[month] = 0;
+    monthlyData[month] += s.total;
+});
+
+const labels = Object.keys(monthlyData);
+const values = Object.values(monthlyData);
+
+// RENDER GRAFIK
+new Chart(document.getElementById("salesChart"), {
+    type: "bar",
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Penjualan (Rp)",
+            data: values,
+            backgroundColor: "#4CAF50",
+            borderColor: "#2E7D32",
+            borderWidth: 2,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: v => "Rp " + v.toLocaleString("id-ID")
+                }
+            }
+        }
+    }
+});
+</script>
+
 </body>
 </html>
