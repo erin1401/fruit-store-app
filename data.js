@@ -1,170 +1,202 @@
 /* =========================================================
-   data.js — Juragan Buah
-   Basis data lokal berbasis localStorage
-   Semua halaman membaca data dari sini
+   data.js — Juragan Buah (UI Level 3 Final)
+   Database berbasis LocalStorage
+   Support:
+   - Items
+   - Buyers
+   - Stock In / Stock Out
+   - Opname
+   - Sales (Tunai/Transfer, barcode, kembalian, struk)
+   - Users + Login system
    ========================================================= */
+
+// ----------------------
+// FUNCTION UTILITY
+// ----------------------
+function getStore(key, def) {
+  const v = localStorage.getItem(key);
+  return v ? JSON.parse(v) : def;
+}
+
+function setStore(key, val) {
+  localStorage.setItem(key, JSON.stringify(val));
+}
+
+function rid() {
+  return "ID" + Math.random().toString(36).substring(2, 10);
+}
+
+function today() {
+  const d = new Date();
+  return d.toISOString().split("T")[0];
+}
+
+// =========================================================
+//                 DATA STORE UTAMA
+// =========================================================
 
 const DataStore = {
 
-  /* ======================
-     ITEMS
-     ====================== */
+  /* ------------------------------------
+     MASTER ITEM
+  ------------------------------------ */
   getItems() {
     return getStore("items", []);
   },
 
   addItem(obj) {
-    const items = this.getItems();
-    obj.id = obj.id || rid();
-    items.push(obj);
-    setStore("items", items);
+    const list = this.getItems();
+    obj.id = rid();
+    list.push(obj);
+    setStore("items", list);
   },
 
   updateItem(id, data) {
-    const items = this.getItems();
-    const idx = items.findIndex(i => i.id === id);
+    const list = this.getItems();
+    const idx = list.findIndex(x => x.id === id);
     if (idx >= 0) {
-      items[idx] = { ...items[idx], ...data };
-      setStore("items", items);
+      list[idx] = { ...list[idx], ...data };
+      setStore("items", list);
     }
   },
 
   deleteItem(id) {
-    const items = this.getItems().filter(i => i.id !== id);
-    setStore("items", items);
-
-    // Bersihkan stok terkait
+    setStore("items", this.getItems().filter(i => i.id !== id));
     setStore("stockIn", this.getStockIn().filter(r => r.itemId !== id));
     setStore("stockOut", this.getStockOut().filter(r => r.itemId !== id));
     setStore("opname", this.getOpname().filter(r => r.itemId !== id));
   },
 
-
-  /* ======================
+  /* ------------------------------------
      BUYERS
-     ====================== */
+  ------------------------------------ */
   getBuyers() {
     return getStore("buyers", []);
   },
 
   addBuyer(obj) {
-    const buyers = this.getBuyers();
-    obj.id = obj.id || rid();
-    buyers.push(obj);
-    setStore("buyers", buyers);
+    const list = this.getBuyers();
+    obj.id = rid();
+    list.push(obj);
+    setStore("buyers", list);
   },
 
   updateBuyer(id, data) {
-    const buyers = this.getBuyers();
-    const idx = buyers.findIndex(i => i.id === id);
+    const list = this.getBuyers();
+    const idx = list.findIndex(x => x.id === id);
     if (idx >= 0) {
-      buyers[idx] = { ...buyers[idx], ...data };
-      setStore("buyers", buyers);
+      list[idx] = { ...list[idx], ...data };
+      setStore("buyers", list);
     }
   },
 
   deleteBuyer(id) {
-    const buyers = this.getBuyers().filter(i => i.id !== id);
-    setStore("buyers", buyers);
+    setStore("buyers", this.getBuyers().filter(b => b.id !== id));
   },
 
-
-  /* ======================
-     STOCK IN / MASUK
-     ====================== */
+  /* ------------------------------------
+     STOCK IN
+  ------------------------------------ */
   getStockIn() {
     return getStore("stockIn", []);
   },
 
   addStockIn(obj) {
     const list = this.getStockIn();
-    obj.id = obj.id || rid();
+    obj.id = rid();
     list.push(obj);
     setStore("stockIn", list);
   },
 
-
-  /* ======================
-     STOCK OUT / KELUAR
-     ====================== */
+  /* ------------------------------------
+     STOCK OUT
+  ------------------------------------ */
   getStockOut() {
     return getStore("stockOut", []);
   },
 
   addStockOut(obj) {
     const list = this.getStockOut();
-    obj.id = obj.id || rid();
+    obj.id = rid();
     list.push(obj);
     setStore("stockOut", list);
   },
 
-
-  /* ======================
+  /* ------------------------------------
      STOCK OPNAME
-     ====================== */
+  ------------------------------------ */
   getOpname() {
     return getStore("opname", []);
   },
 
   addOpname(obj) {
     const list = this.getOpname();
-    obj.id = obj.id || rid();
+    obj.id = rid();
     list.push(obj);
     setStore("opname", list);
   },
 
+  /* ------------------------------------
+     HITUNG STOK REALTIME
+  ------------------------------------ */
+  getStock(itemId) {
+    const masuk = this.getStockIn().filter(r => r.itemId === itemId)
+      .reduce((a, b) => a + Number(b.qty), 0);
 
-  /* ======================
-     HITUNG STOK REAL-TIME
-     ====================== */
-  getStock(id) {
-    const inData = this.getStockIn().filter(r => r.itemId === id)
-      .reduce((a, b) => a + b.qty, 0);
+    const keluar = this.getStockOut().filter(r => r.itemId === itemId)
+      .reduce((a, b) => a + Number(b.qty), 0);
 
-    const outData = this.getStockOut().filter(r => r.itemId === id)
-      .reduce((a, b) => a + b.qty, 0);
-
-    const opname = this.getOpname().filter(r => r.itemId === id)
+    const opname = this.getOpname().filter(r => r.itemId === itemId)
       .sort((a, b) => b.date.localeCompare(a.date))[0];
 
-    if (opname) return opname.qty;
-
-    return inData - outData;
+    return opname ? opname.qty : masuk - keluar;
   },
 
 
-  /* ======================
+  /* ------------------------------------
      SALES / PENJUALAN
-     ====================== */
+     ------------------------------------
+     Format penjualan:
+     {
+       id,
+       date,
+       items: [ {itemId, name, price, qty} ],
+       total,
+       bayar,
+       kembali,
+       metode: "tunai" | "transfer",
+       buyerId,
+       barcode
+     }
+  ------------------------------------ */
   getSales() {
     return getStore("sales", []);
   },
 
   addSale(obj) {
-    const sales = this.getSales();
-    obj.id = obj.id || rid();
-    sales.push(obj);
-    setStore("sales", sales);
+    const list = this.getSales();
+    obj.id = rid();
+    list.push(obj);
+    setStore("sales", list);
   },
 
 
-  /* ======================
-     USERS
-     ====================== */
+  /* ------------------------------------
+     USER SYSTEM
+  ------------------------------------ */
   getUsers() {
-    const users = getStore("users", null);
+    let users = getStore("users", null);
 
-    // jika belum ada user → buat admin default
+    // Jika belum ada user → buat admin default
     if (!users) {
-      const admin = [{
+      users = [{
         id: rid(),
         username: "admin",
-        password: btoa("admin"), // admin/admin
+        password: btoa("admin"),   // admin/admin
         role: "admin",
         created: today()
       }];
-      setStore("users", admin);
-      return admin;
+      setStore("users", users);
     }
 
     return users;
@@ -172,7 +204,8 @@ const DataStore = {
 
   addUser(obj) {
     const users = this.getUsers();
-    obj.id = obj.id || rid();
+    obj.id = rid();
+    obj.password = btoa(obj.password);
     users.push(obj);
     setStore("users", users);
   },
@@ -180,46 +213,37 @@ const DataStore = {
   updateUser(id, data) {
     const users = this.getUsers();
     const idx = users.findIndex(u => u.id === id);
+
     if (idx >= 0) {
       users[idx] = {
         ...users[idx],
         ...data,
-        password: data.password ? data.password : users[idx].password
+        password: data.password ? btoa(data.password) : users[idx].password
       };
       setStore("users", users);
     }
   },
 
   deleteUser(id) {
-    const users = this.getUsers().filter(u => u.id !== id);
-    setStore("users", users);
+    setStore("users", this.getUsers().filter(u => u.id !== id));
   },
 
-
-  /* ======================
-     LOGIN USER
-     ====================== */
+  /* ------------------------------------
+     LOGIN
+  ------------------------------------ */
   login(username, password) {
     const users = this.getUsers();
-    const passHash = btoa(password);
+    const hash = btoa(password);
 
-    const user = users.find(
-      u => u.username === username && u.password === passHash
+    const u = users.find(x =>
+      x.username === username && x.password === hash
     );
 
-    if (user) {
-      setStore("loginUser", user);
-      return true;
-    }
+    if (!u) return false;
 
-    return false;
+    setStore("loginUser", u);
+    return true;
   },
 
   getLoginUser() {
-    return getStore("loginUser", null);
-  }
-};
-
-
-// Export agar bisa dipanggil global
-window.DataStore = DataStore;
+    return getSto
